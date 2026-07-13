@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>個人專屬稅務帳戶 · App 模擬介面</title>
+<style>
+  :root{
+    --brand:#13294B; --brand2:#20416B; --gold:#D99A2B; --gold-d:#B57F1E; --teal:#1C7293;
+    --red:#D64545; --green:#2E9E6B; --bg:#EEF1F6; --card:#FFFFFF; --ink:#1A2233;
+    --muted:#6B7688; --line:#E7EBF1; --soft:#F4F6FA;
+    --font:"Noto Sans TC","PingFang TC","Microsoft JhengHei","微軟正黑體","Heiti TC",sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%}
+  body{font-family:var(--font);background:
+    radial-gradient(1200px 700px at 20% 0%, #1b2c4a 0%, #0e1626 55%, #0a111e 100%);
+    color:var(--ink);-webkit-font-smoothing:antialiased;overflow:hidden}
+  #wrap{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;gap:64px;padding:24px}
+
+  /* side caption (desktop) */
+  #caption{max-width:340px;color:#dfe7f3}
+  #caption .logo{display:flex;align-items:center;gap:12px;margin-bottom:20px}
+  #caption .logo .mk{width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,var(--gold),var(--gold-d));
+    display:grid;place-items:center;color:var(--brand);box-shadow:0 8px 20px rgba(217,154,43,.35)}
+  #caption .logo .mk svg{width:26px;height:26px;fill:currentColor}
+  #caption .logo b{font-size:21px;color:#fff;letter-spacing:.02em}
+  #caption h1{font-size:30px;line-height:1.25;color:#fff;font-weight:900;margin-bottom:14px}
+  #caption p{font-size:15px;line-height:1.7;color:#aebbcf;margin-bottom:22px}
+  #caption .tags{display:flex;flex-wrap:wrap;gap:9px}
+  #caption .tag{font-size:12.5px;color:#e7edf6;border:1px solid rgba(255,255,255,.18);
+    background:rgba(255,255,255,.05);border-radius:999px;padding:7px 14px}
+  #caption .hint{margin-top:26px;font-size:13px;color:#8fa0b8;display:flex;align-items:center;gap:8px}
+  #caption .hint .dot{width:8px;height:8px;border-radius:999px;background:var(--gold);
+    box-shadow:0 0 0 0 rgba(217,154,43,.6);animation:pulse 1.8s infinite}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(217,154,43,.55)}70%{box-shadow:0 0 0 10px rgba(217,154,43,0)}100%{box-shadow:0 0 0 0 rgba(217,154,43,0)}}
+
+  /* phone */
+  #device{transform-origin:center center}
+  .phone{width:390px;height:844px;background:#000;border-radius:52px;padding:13px;
+    box-shadow:0 40px 90px rgba(0,0,0,.55), inset 0 0 0 2px #23262d;position:relative}
+  .screen-shell{width:100%;height:100%;background:var(--bg);border-radius:40px;overflow:hidden;position:relative;
+    display:flex;flex-direction:column}
+  .notch{position:absolute;top:13px;left:50%;transform:translateX(-50%);width:126px;height:30px;background:#000;
+    border-radius:0 0 18px 18px;z-index:40}
+
+  /* status bar */
+  .statusbar{height:46px;flex:none;display:flex;align-items:flex-end;justify-content:space-between;
+    padding:0 26px 6px;font-size:14px;font-weight:700;color:#fff;position:relative;z-index:30}
+  .statusbar.dark{color:var(--ink)}
+  .statusbar .r{display:flex;align-items:center;gap:6px}
+  .statusbar .bat{width:22px;height:11px;border:1.5px solid currentColor;border-radius:3px;position:relative;opacity:.9}
+  .statusbar .bat::after{content:"";position:absolute;right:-3px;top:3px;width:2px;height:5px;background:currentColor;border-radius:1px}
+  .statusbar .bat i{position:absolute;left:1.5px;top:1.5px;bottom:1.5px;width:70%;background:currentColor;border-radius:1px}
+  .statusbar .sig{display:flex;align-items:flex-end;gap:1.5px;height:11px}
+  .statusbar .sig b{width:3px;background:currentColor;border-radius:1px}
+  .statusbar .sig b:nth-child(1){height:4px}.statusbar .sig b:nth-child(2){height:6px}
+  .statusbar .sig b:nth-child(3){height:8px}.statusbar .sig b:nth-child(4){height:11px}
+
+  /* scroll area */
+  .screen{flex:1;overflow-y:auto;overflow-x:hidden;position:relative}
+  .screen::-webkit-scrollbar{display:none}
+  .screen{scrollbar-width:none}
+  .view{animation:fade .32s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  @keyframes slidein{from{opacity:0;transform:translateX(24px)}to{opacity:1;transform:none}}
+  .pushed{animation:slidein .3s ease}
+
+  /* headers */
+  .hero{background:linear-gradient(160deg,var(--brand) 0%,var(--brand2) 100%);color:#fff;
+    padding:6px 20px 22px;border-radius:0 0 26px 26px;position:relative;overflow:hidden}
+  .hero::after{content:"";position:absolute;right:-40px;top:-50px;width:180px;height:180px;border-radius:999px;
+    background:rgba(255,255,255,.05)}
+  .hero .top{display:flex;align-items:center;gap:12px;position:relative;z-index:2}
+  .hero .av{width:44px;height:44px;border-radius:14px;background:rgba(255,255,255,.16);display:grid;place-items:center}
+  .hero .av svg{width:26px;height:26px;fill:#fff}
+  .hero .hi{flex:1}
+  .hero .hi .s{font-size:12.5px;color:#c9d6ea;opacity:.9}
+  .hero .hi .n{font-size:18px;font-weight:800;margin-top:1px}
+  .bell{width:42px;height:42px;border-radius:12px;background:rgba(255,255,255,.12);display:grid;place-items:center;position:relative;cursor:pointer}
+  .bell svg{width:19px;height:19px;fill:#fff}
+  .bell .bg{position:absolute;top:8px;right:9px;min-width:16px;height:16px;padding:0 4px;background:var(--gold);
+    color:var(--brand);font-size:10px;font-weight:900;border-radius:999px;display:grid;place-items:center}
+
+  .hstat{display:flex;gap:10px;margin-top:16px;position:relative;z-index:2}
+  .hstat .st{flex:1;background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:11px 12px}
+  .hstat .st .l{font-size:11px;color:#c3d1e6}
+  .hstat .st .v{font-size:17px;font-weight:900;margin-top:3px;letter-spacing:.02em}
+  .hstat .st .v small{font-size:11px;font-weight:700}
+  .hstat .st.warn .v{color:var(--gold)}
+
+  /* sub header for tabs */
+  .subhead{background:linear-gradient(160deg,var(--brand),var(--brand2));color:#fff;padding:8px 20px 20px;border-radius:0 0 26px 26px}
+  .subhead .t{font-size:20px;font-weight:900}
+  .subhead .d{font-size:12.5px;color:#c9d6ea;margin-top:4px;display:flex;align-items:center;gap:6px}
+  .subhead .d svg{width:13px;height:13px;fill:#c9d6ea}
+  .subhead .maplink{margin-left:auto;color:var(--gold-lt,#F0C56A);font-weight:700;display:flex;align-items:center;gap:3px}
+
+  /* push header */
+  .phead{background:var(--brand);color:#fff;display:flex;align-items:center;gap:6px;padding:6px 12px 16px}
+  .phead .back{width:40px;height:40px;display:grid;place-items:center;cursor:pointer;border-radius:12px}
+  .phead .back:active{background:rgba(255,255,255,.12)}
+  .phead .back svg{width:20px;height:20px;fill:#fff}
+  .phead .tt{font-size:18px;font-weight:800}
+
+  /* body */
+  .body{padding:16px}
+  .sect{margin-top:20px}
+  .sect:first-child{margin-top:0}
+  .sect .st{font-size:15px;font-weight:800;color:var(--ink);margin-bottom:11px;display:flex;align-items:center;gap:7px}
+  .sect .st .more{margin-left:auto;font-size:12.5px;color:var(--teal);font-weight:700;cursor:pointer}
+
+  .card{background:var(--card);border-radius:18px;box-shadow:0 6px 18px rgba(23,38,66,.07);overflow:hidden}
+  .pad{padding:16px}
+
+  /* due reminder */
+  .due{background:linear-gradient(135deg,#fff 0%,#fff7f4 100%);border:1px solid #f6dcd6;border-radius:18px;padding:15px;
+    box-shadow:0 8px 22px rgba(214,69,69,.10)}
+  .due .h{display:flex;align-items:center;gap:8px;font-weight:800;color:var(--red);font-size:14.5px;margin-bottom:12px}
+  .due .h svg{width:17px;height:17px;fill:var(--red)}
+  .due .h .n{margin-left:auto;font-size:12px;color:#fff;background:var(--red);border-radius:999px;padding:2px 9px}
+  .dueitem{display:flex;align-items:center;gap:12px;padding:11px 0;border-top:1px dashed #f0ddd7}
+  .dueitem:first-of-type{border-top:none}
+  .dueitem .ic{width:40px;height:40px;border-radius:12px;background:#fdeeea;display:grid;place-items:center;flex:none}
+  .dueitem .ic svg{width:20px;height:20px;fill:var(--red)}
+  .dueitem .m{flex:1;min-width:0}
+  .dueitem .m .nm{font-size:14.5px;font-weight:700}
+  .dueitem .m .dl{font-size:11.5px;color:var(--muted);margin-top:2px}
+  .dueitem .m .dl b{color:var(--red)}
+  .dueitem .amt{text-align:right}
+  .dueitem .amt .a{font-size:16px;font-weight:900;color:var(--ink)}
+  .btn-pay{margin-top:5px;font-size:11.5px;font-weight:800;color:var(--brand);background:var(--gold);
+    border:none;border-radius:999px;padding:5px 12px;cursor:pointer}
+  .btn-pay:active{transform:scale(.96)}
+
+  /* service tiles */
+  .tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:11px}
+  .tile{background:var(--card);border-radius:16px;padding:15px 8px;text-align:center;cursor:pointer;
+    box-shadow:0 6px 16px rgba(23,38,66,.06);transition:.15s}
+  .tile:active{transform:scale(.96)}
+  .tile .ci{width:48px;height:48px;border-radius:14px;display:grid;place-items:center;margin:0 auto 8px}
+  .tile .ci svg{width:24px;height:24px;fill:#fff}
+  .tile.c1 .ci{background:linear-gradient(135deg,#1E3A5F,#13294B)}
+  .tile.c2 .ci{background:linear-gradient(135deg,#1C7293,#155a75)}
+  .tile.c3 .ci{background:linear-gradient(135deg,#E0A93B,#c48f24)}
+  .tile .tn{font-size:13px;font-weight:800;color:var(--ink)}
+  .tile .td{font-size:10.5px;color:var(--muted);margin-top:2px}
+
+  /* function grid */
+  .fns{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;background:var(--card);border-radius:18px;padding:16px 8px;
+    box-shadow:0 6px 18px rgba(23,38,66,.07)}
+  .fn{text-align:center;cursor:pointer;padding:6px 2px;border-radius:12px;transition:.15s}
+  .fn:active{background:var(--soft);transform:scale(.95)}
+  .fn .ci{width:46px;height:46px;border-radius:14px;background:var(--soft);display:grid;place-items:center;margin:0 auto 7px}
+  .fn .ci svg{width:22px;height:22px;fill:var(--brand)}
+  .fn.g .ci{background:#fbf3e2}.fn.g .ci svg{fill:var(--gold-d)}
+  .fn.t .ci{background:#e7f1f4}.fn.t .ci svg{fill:var(--teal)}
+  .fn .fl{font-size:11.5px;color:var(--ink);font-weight:600;line-height:1.2}
+
+  /* promo */
+  .promo{background:linear-gradient(120deg,#fbf1dc 0%,#fdf8ee 100%);border:1px solid #efdcb4;border-radius:18px;
+    padding:15px;display:flex;gap:13px;cursor:pointer;box-shadow:0 8px 20px rgba(217,154,43,.12)}
+  .promo:active{transform:scale(.99)}
+  .promo .ci{width:44px;height:44px;border-radius:13px;background:linear-gradient(135deg,var(--gold),var(--gold-d));
+    display:grid;place-items:center;flex:none}
+  .promo .ci svg{width:22px;height:22px;fill:#fff}
+  .promo .m .tg{font-size:11px;font-weight:800;color:var(--gold-d);letter-spacing:.04em}
+  .promo .m .tx{font-size:13px;color:var(--ink);line-height:1.5;margin-top:3px;font-weight:600}
+  .promo .go{align-self:center;color:var(--gold-d)}
+  .promo .go svg{width:16px;height:16px;fill:currentColor}
+
+  /* generic list */
+  .list{background:var(--card);border-radius:18px;box-shadow:0 6px 18px rgba(23,38,66,.07);overflow:hidden}
+  .li{display:flex;align-items:center;gap:13px;padding:14px 16px;cursor:pointer;border-top:1px solid var(--line)}
+  .li:first-child{border-top:none}
+  .li:active{background:var(--soft)}
+  .li .ci{width:42px;height:42px;border-radius:12px;background:var(--soft);display:grid;place-items:center;flex:none}
+  .li .ci svg{width:20px;height:20px;fill:var(--brand)}
+  .li .m{flex:1;min-width:0}
+  .li .m .nm{font-size:14.5px;font-weight:700;color:var(--ink)}
+  .li .m .sub{font-size:12px;color:var(--muted);margin-top:2px}
+  .li .rt{text-align:right;flex:none}
+  .li .rt .a{font-size:15px;font-weight:900}
+  .li .chev{color:#c3cbd8}
+  .li .chev svg{width:15px;height:15px;fill:currentColor}
+
+  .status{font-size:11px;font-weight:800;padding:3px 9px;border-radius:999px;display:inline-block}
+  .status.paid{background:#e6f5ee;color:var(--green)}
+  .status.unpaid{background:#fdeaea;color:var(--red)}
+  .status.done{background:#e9eef7;color:var(--teal)}
+
+  /* buttons */
+  .btn{width:100%;border:none;border-radius:15px;padding:15px;font-size:16px;font-weight:800;cursor:pointer;font-family:inherit}
+  .btn:active{transform:scale(.985)}
+  .btn-primary{background:linear-gradient(135deg,var(--gold),var(--gold-d));color:var(--brand);box-shadow:0 10px 24px rgba(217,154,43,.3)}
+  .btn-navy{background:var(--brand);color:#fff}
+  .btn-ghost{background:#fff;color:var(--brand);border:1.5px solid var(--line)}
+
+  /* chips */
+  .chips{display:flex;gap:8px;margin-bottom:14px;overflow-x:auto}
+  .chip{font-size:12.5px;font-weight:700;padding:7px 15px;border-radius:999px;background:#fff;color:var(--muted);
+    border:1px solid var(--line);cursor:pointer;white-space:nowrap}
+  .chip.on{background:var(--brand);color:#fff;border-color:var(--brand)}
+
+  /* login */
+  .login{min-height:100%;background:linear-gradient(165deg,var(--brand) 0%,#0f2038 60%,#0b1a30 100%);
+    color:#fff;padding:40px 30px 30px;display:flex;flex-direction:column}
+  .login .brand{display:flex;flex-direction:column;align-items:center;margin-top:34px}
+  .login .brand .mk{width:76px;height:76px;border-radius:22px;background:linear-gradient(135deg,var(--gold),var(--gold-d));
+    display:grid;place-items:center;box-shadow:0 16px 36px rgba(217,154,43,.4)}
+  .login .brand .mk svg{width:40px;height:40px;fill:var(--brand)}
+  .login .brand h2{font-size:23px;font-weight:900;margin-top:18px;letter-spacing:.03em}
+  .login .brand p{font-size:13px;color:#a9bad4;margin-top:8px;text-align:center;line-height:1.6}
+  .login .slogan{text-align:center;font-size:13px;color:var(--gold-lt,#F0C56A);margin-top:14px;font-weight:700}
+  .login .auth{margin-top:auto}
+  .login .auth .lbl{font-size:12.5px;color:#9fb0c9;margin-bottom:12px;text-align:center}
+  .authbtn{display:flex;align-items:center;gap:14px;width:100%;background:rgba(255,255,255,.08);
+    border:1px solid rgba(255,255,255,.14);border-radius:16px;padding:15px 16px;margin-bottom:11px;cursor:pointer;
+    color:#fff;font-family:inherit;transition:.15s}
+  .authbtn:active{transform:scale(.98);background:rgba(255,255,255,.14)}
+  .authbtn .ci{width:42px;height:42px;border-radius:12px;background:rgba(217,154,43,.9);display:grid;place-items:center;flex:none}
+  .authbtn .ci svg{width:21px;height:21px;fill:var(--brand)}
+  .authbtn .m{text-align:left;flex:1}
+  .authbtn .m .t{font-size:15px;font-weight:800}
+  .authbtn .m .s{font-size:11.5px;color:#a9bad4;margin-top:1px}
+  .authbtn .go svg{width:15px;height:15px;fill:#8296b3}
+  .login .note{text-align:center;font-size:11px;color:#7c8ca6;margin-top:14px}
+
+  /* section headers small */
+  .grp{font-size:12.5px;font-weight:800;color:var(--muted);margin:20px 4px 9px;letter-spacing:.02em}
+  .grp:first-child{margin-top:4px}
+
+  /* toggle row */
+  .trow{display:flex;align-items:center;gap:13px;padding:14px 16px;border-top:1px solid var(--line)}
+  .trow:first-child{border-top:none}
+  .trow .ci{width:38px;height:38px;border-radius:11px;background:var(--soft);display:grid;place-items:center;flex:none}
+  .trow .ci svg{width:18px;height:18px;fill:var(--brand)}
+  .trow .m{flex:1}
+  .trow .m .t{font-size:14px;font-weight:700}
+  .trow .m .s{font-size:11.5px;color:var(--muted);margin-top:1px}
+  .tg{width:44px;height:26px;border-radius:999px;background:#d3d9e3;position:relative;flex:none;cursor:pointer;transition:.2s}
+  .tg::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:999px;background:#fff;
+    transition:.2s;box-shadow:0 2px 4px rgba(0,0,0,.2)}
+  .tg.on{background:var(--green)}.tg.on::after{left:21px}
+
+  /* pay */
+  .payhead{background:var(--card);border-radius:18px;padding:22px;text-align:center;box-shadow:0 6px 18px rgba(23,38,66,.07)}
+  .payhead .lbl{font-size:13px;color:var(--muted)}
+  .payhead .amt{font-size:38px;font-weight:900;color:var(--ink);margin-top:6px;letter-spacing:.01em}
+  .payhead .amt small{font-size:18px;margin-right:3px}
+  .payhead .nm{font-size:14px;color:var(--teal);font-weight:700;margin-top:6px}
+  .kv{display:flex;justify-content:space-between;padding:13px 0;border-top:1px solid var(--line);font-size:13.5px}
+  .kv:first-child{border-top:none}
+  .kv .k{color:var(--muted)}.kv .v{font-weight:700;color:var(--ink)}
+  .paymethod{display:flex;align-items:center;gap:12px;padding:14px 16px;border-top:1px solid var(--line);cursor:pointer}
+  .paymethod:first-child{border-top:none}
+  .paymethod .ci{width:40px;height:40px;border-radius:11px;background:var(--soft);display:grid;place-items:center}
+  .paymethod .ci svg{width:19px;height:19px;fill:var(--brand)}
+  .paymethod .m{flex:1;font-size:14px;font-weight:700}
+  .paymethod .rd{width:20px;height:20px;border-radius:999px;border:2px solid #cfd6e1}
+  .paymethod.sel .rd{border-color:var(--gold);background:radial-gradient(circle,var(--gold) 40%,transparent 46%)}
+
+  .done{padding:50px 24px;text-align:center}
+  .done .ok{width:96px;height:96px;border-radius:999px;background:#e6f5ee;display:grid;place-items:center;margin:0 auto 22px;
+    animation:pop .5s cubic-bezier(.2,1.3,.5,1)}
+  .done .ok svg{width:52px;height:52px;fill:var(--green)}
+  @keyframes pop{from{transform:scale(0)}to{transform:scale(1)}}
+  .done h3{font-size:22px;font-weight:900;color:var(--ink)}
+  .done p{font-size:13.5px;color:var(--muted);margin-top:8px;line-height:1.6}
+  .done .rc{background:#fff;border-radius:16px;padding:16px;margin:22px 0;text-align:left;box-shadow:0 6px 16px rgba(23,38,66,.07)}
+
+  /* chat */
+  .chatwrap{display:flex;flex-direction:column;height:100%}
+  .chatbody{flex:1;overflow-y:auto;padding:16px;background:var(--bg);display:flex;flex-direction:column;gap:12px}
+  .chatbody::-webkit-scrollbar{display:none}
+  .msg{max-width:78%;padding:11px 14px;font-size:14px;line-height:1.55;border-radius:16px;animation:fade .3s ease}
+  .msg.bot{align-self:flex-start;background:#fff;color:var(--ink);border-bottom-left-radius:5px;box-shadow:0 3px 10px rgba(23,38,66,.08)}
+  .msg.me{align-self:flex-end;background:var(--brand);color:#fff;border-bottom-right-radius:5px}
+  .botrow{display:flex;gap:9px;align-items:flex-end;max-width:88%}
+  .botrow .av{width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,var(--teal),#155a75);
+    display:grid;place-items:center;flex:none}
+  .botrow .av svg{width:17px;height:17px;fill:#fff}
+  .quick{display:flex;flex-wrap:wrap;gap:8px;padding:12px 16px;background:var(--bg)}
+  .quick .q{font-size:12.5px;font-weight:700;color:var(--teal);background:#fff;border:1px solid #d7e3e8;
+    border-radius:999px;padding:8px 14px;cursor:pointer}
+  .quick .q:active{background:#eef5f7}
+  .chatbar{display:flex;gap:10px;padding:12px 16px;background:#fff;border-top:1px solid var(--line);align-items:center}
+  .chatbar .inp{flex:1;background:var(--soft);border-radius:999px;padding:11px 16px;font-size:13px;color:var(--muted)}
+  .chatbar .snd{width:42px;height:42px;border-radius:999px;background:var(--brand);display:grid;place-items:center;flex:none;cursor:pointer}
+  .chatbar .snd svg{width:18px;height:18px;fill:#fff}
+
+  /* qr card */
+  .qrcard{background:var(--card);border-radius:18px;padding:20px;text-align:center;box-shadow:0 6px 18px rgba(23,38,66,.07)}
+  .qrcard .qi{width:150px;height:150px;margin:0 auto;background:#fff;border:1px solid var(--line);border-radius:14px;
+    display:grid;place-items:center;padding:10px}
+  .qrcard .qi svg{width:100%;height:100%}
+  .qrcard .code{font-size:22px;font-weight:900;color:var(--brand);margin-top:14px;letter-spacing:.08em}
+  .qrcard .cl{font-size:12px;color:var(--muted);margin-top:3px}
+
+  .info-note{display:flex;gap:9px;background:#eef3fa;border-radius:12px;padding:12px 13px;font-size:12px;color:#40536e;line-height:1.55;margin-top:14px}
+  .info-note svg{width:16px;height:16px;fill:var(--teal);flex:none;margin-top:1px}
+
+  /* tab bar */
+  .tabbar{flex:none;display:flex;background:#fff;border-top:1px solid var(--line);padding:8px 6px 22px;
+    box-shadow:0 -4px 20px rgba(23,38,66,.06)}
+  .tab{flex:1;text-align:center;cursor:pointer;padding:4px 0;color:#9aa6b6}
+  .tab .ci{height:24px;display:grid;place-items:center}
+  .tab .ci svg{width:22px;height:22px;fill:currentColor}
+  .tab .tl{font-size:10.5px;font-weight:700;margin-top:3px}
+  .tab.on{color:var(--brand)}
+  .tab.on .ci svg{fill:var(--brand)}
+  .homebar{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);width:130px;height:5px;border-radius:999px;
+    background:rgba(0,0,0,.18);z-index:35}
+  .no-tabs .tabbar{display:none}
+
+  /* floating AI */
+  .fab{position:absolute;right:16px;bottom:96px;width:56px;height:56px;border-radius:999px;
+    background:linear-gradient(135deg,var(--teal),#134f68);display:grid;place-items:center;cursor:pointer;z-index:25;
+    box-shadow:0 12px 26px rgba(28,114,147,.45)}
+  .fab svg{width:26px;height:26px;fill:#fff}
+  .fab .pin{position:absolute;top:-2px;right:-2px;width:14px;height:14px;border-radius:999px;background:var(--gold);border:2px solid #fff}
+
+  @media (max-width:920px){#caption{display:none}#wrap{gap:0}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><symbol id="i-home" viewBox="0 0 576 512"><path d="M280.37 148.26L96 300.11V464a16 16 0 0 0 16 16l112.06-.29a16 16 0 0 0 15.92-16V368a16 16 0 0 1 16-16h64a16 16 0 0 1 16 16v95.64a16 16 0 0 0 16 16.05L464 480a16 16 0 0 0 16-16V300L295.67 148.26a12.19 12.19 0 0 0-15.3 0zM571.6 251.47L488 182.56V44.05a12 12 0 0 0-12-12h-56a12 12 0 0 0-12 12v72.61L318.47 43a48 48 0 0 0-61 0L4.34 251.47a12 12 0 0 0-1.6 16.9l25.5 31A12 12 0 0 0 45.15 301l235.22-193.74a12.19 12.19 0 0 1 15.3 0L530.9 301a12 12 0 0 0 16.9-1.6l25.5-31a12 12 0 0 0-1.7-16.93z"/></symbol>
+<symbol id="i-bell" viewBox="0 0 448 512"><path d="M439.39 362.29c-19.32-20.76-55.47-51.99-55.47-154.29 0-77.7-54.48-139.9-127.94-155.16V32c0-17.67-14.32-32-31.98-32s-31.98 14.33-31.98 32v20.84C118.56 68.1 64.08 130.3 64.08 208c0 102.3-36.15 133.53-55.47 154.29-6 6.45-8.66 14.16-8.61 21.71.11 16.4 12.98 32 32.1 32h383.8c19.12 0 32-15.6 32.1-32 .05-7.55-2.61-15.27-8.61-21.71zM67.53 368c21.22-27.97 44.42-74.33 44.53-159.42 0-.2-.06-.38-.06-.58 0-61.86 50.14-112 112-112s112 50.14 112 112c0 .2-.06.38-.06.58.11 85.1 23.31 131.46 44.53 159.42H67.53zM224 512c35.32 0 63.97-28.65 63.97-64H160.03c0 35.35 28.65 64 63.97 64z"/></symbol>
+<symbol id="i-user" viewBox="0 0 496 512"><path d="M248 8C111 8 0 119 0 256s111 248 248 248 248-111 248-248S385 8 248 8zm0 96c48.6 0 88 39.4 88 88s-39.4 88-88 88-88-39.4-88-88 39.4-88 88-88zm0 344c-58.7 0-111.3-26.6-146.5-68.2 18.8-35.4 55.6-59.8 98.5-59.8 2.4 0 4.8.4 7.1 1.1 13 4.2 26.6 6.9 40.9 6.9 14.3 0 28-2.7 40.9-6.9 2.3-.7 4.7-1.1 7.1-1.1 42.9 0 79.7 24.4 98.5 59.8C359.3 421.4 306.7 448 248 448z"/></symbol>
+<symbol id="i-national" viewBox="0 0 512 512"><path d="M501.62 92.11L267.24 2.04a31.958 31.958 0 0 0-22.47 0L10.38 92.11A16.001 16.001 0 0 0 0 107.09V144c0 8.84 7.16 16 16 16h480c8.84 0 16-7.16 16-16v-36.91c0-6.67-4.14-12.64-10.38-14.98zM64 192v160H48c-8.84 0-16 7.16-16 16v48h448v-48c0-8.84-7.16-16-16-16h-16V192h-64v160h-96V192h-64v160h-96V192H64zm432 256H16c-8.84 0-16 7.16-16 16v32c0 8.84 7.16 16 16 16h480c8.84 0 16-7.16 16-16v-32c0-8.84-7.16-16-16-16z"/></symbol>
+<symbol id="i-local" viewBox="0 0 640 512"><path d="M616 192H480V24c0-13.26-10.74-24-24-24H312c-13.26 0-24 10.74-24 24v72h-64V16c0-8.84-7.16-16-16-16h-16c-8.84 0-16 7.16-16 16v80h-64V16c0-8.84-7.16-16-16-16H80c-8.84 0-16 7.16-16 16v80H24c-13.26 0-24 10.74-24 24v360c0 17.67 14.33 32 32 32h576c17.67 0 32-14.33 32-32V216c0-13.26-10.75-24-24-24zM128 404c0 6.63-5.37 12-12 12H76c-6.63 0-12-5.37-12-12v-40c0-6.63 5.37-12 12-12h40c6.63 0 12 5.37 12 12v40zm0-96c0 6.63-5.37 12-12 12H76c-6.63 0-12-5.37-12-12v-40c0-6.63 5.37-12 12-12h40c6.63 0 12 5.37 12 12v40zm0-96c0 6.63-5.37 12-12 12H76c-6.63 0-12-5.37-12-12v-40c0-6.63 5.37-12 12-12h40c6.63 0 12 5.37 12 12v40zm128 192c0 6.63-5.37 12-12 12h-40c-6.63 0-12-5.37-12-12v-40c0-6.63 5.37-12 12-12h40c6.63 0 12 5.37 12 12v40zm0-96c0 6.63-5.37 12-12 12h-40c-6.63 0-12-5.37-12-12v-40c0-6.63 5.37-12 12-12h40c6.63 0 12 5.37 12 12v40zm0-96c0 6.63-5.37 12-12 12h-40c-6.63 0-12-5.37-12-12v-40c0-6.63 5.37-12 12-12h40c6.63 0 12 5.37 12 12v40zm160 96c0 6.63-5.37 12-12 12h-40c-6.63 0-12-5.37-12-12v-40c0-6.63 5.37-12 12-12h40c6.63 0 12 5.37 12 12v40zm0-96c0 6.63-5.37 12-12 12h-40c-6.63 0-12-5.37-12-12v-40c0-6.63 5.37-12 12-12h40c6.63 0 12 5.37 12 12v40zm0-96c0 6.63-5.37 12-12 12h-40c-6.63 0-12-5.37-12-12V76c0-6.63 5.37-12 12-12h40c6.63 0 12 5.37 12 12v40zm160 288c0 6.63-5.37 12-12 12h-40c-6.63 0-12-5.37-12-12v-40c0-6.63 5.37-12 12-12h40c6.63 0 12 5.37 12 12v40zm0-96c0 6.63-5.37 12-12 12h-40c-6.63 0-12-5.37-12-12v-40c0-6.63 5.37-12 12-12h40c6.63 0 12 5.37 12 12v40z"/></symbol>
+<symbol id="i-cloud" viewBox="0 0 640 512"><path d="M537.6 226.6c4.1-10.7 6.4-22.4 6.4-34.6 0-53-43-96-96-96-19.7 0-38.1 6-53.3 16.2C367 64.2 315.3 32 256 32c-88.4 0-160 71.6-160 160 0 2.7.1 5.4.2 8.1C40.2 219.8 0 273.2 0 336c0 79.5 64.5 144 144 144h368c70.7 0 128-57.3 128-128 0-61.9-44-113.6-102.4-125.4z"/></symbol>
+<symbol id="i-receipt" viewBox="0 0 384 512"><path d="M358.4 3.2L320 48 265.6 3.2a15.9 15.9 0 0 0-19.2 0L192 48 137.6 3.2a15.9 15.9 0 0 0-19.2 0L64 48 25.6 3.2C15-4.7 0 2.8 0 16v480c0 13.2 15 20.7 25.6 12.8L64 464l54.4 44.8a15.9 15.9 0 0 0 19.2 0L192 464l54.4 44.8a15.9 15.9 0 0 0 19.2 0L320 464l38.4 44.8c10.5 7.9 25.6.4 25.6-12.8V16c0-13.2-15-20.7-25.6-12.8zM320 360c0 4.4-3.6 8-8 8H72c-4.4 0-8-3.6-8-8v-16c0-4.4 3.6-8 8-8h240c4.4 0 8 3.6 8 8v16zm0-96c0 4.4-3.6 8-8 8H72c-4.4 0-8-3.6-8-8v-16c0-4.4 3.6-8 8-8h240c4.4 0 8 3.6 8 8v16zm0-96c0 4.4-3.6 8-8 8H72c-4.4 0-8-3.6-8-8v-16c0-4.4 3.6-8 8-8h240c4.4 0 8 3.6 8 8v16z"/></symbol>
+<symbol id="i-search" viewBox="0 0 512 512"><path d="M505 442.7L405.3 343c-4.5-4.5-10.6-7-17-7H372c27.6-35.3 44-79.7 44-128C416 93.1 322.9 0 208 0S0 93.1 0 208s93.1 208 208 208c48.3 0 92.7-16.4 128-44v16.3c0 6.4 2.5 12.5 7 17l99.7 99.7c9.4 9.4 24.6 9.4 33.9 0l28.3-28.3c9.4-9.4 9.4-24.6.1-34zM208 336c-70.7 0-128-57.2-128-128 0-70.7 57.2-128 128-128 70.7 0 128 57.2 128 128 0 70.7-57.2 128-128 128z"/></symbol>
+<symbol id="i-fileinv" viewBox="0 0 384 512"><path d="M377 105L279.1 7c-4.5-4.5-10.6-7-17-7H256v128h128v-6.1c0-6.3-2.5-12.4-7-16.9zm-153 31V0H24C10.7 0 0 10.7 0 24v464c0 13.3 10.7 24 24 24h336c13.3 0 24-10.7 24-24V160H248c-13.2 0-24-10.8-24-24zM64 72c0-4.42 3.58-8 8-8h80c4.42 0 8 3.58 8 8v16c0 4.42-3.58 8-8 8H72c-4.42 0-8-3.58-8-8V72zm0 80v-16c0-4.42 3.58-8 8-8h80c4.42 0 8 3.58 8 8v16c0 4.42-3.58 8-8 8H72c-4.42 0-8-3.58-8-8zm144 263.88V440c0 4.42-3.58 8-8 8h-16c-4.42 0-8-3.58-8-8v-24.29c-11.29-.58-22.27-4.52-31.37-11.35-3.9-2.93-4.1-8.77-.57-12.14l11.75-11.21c2.77-2.64 6.89-2.76 10.13-.73 3.87 2.42 8.26 3.72 12.82 3.72h28.11c6.5 0 11.8-5.92 11.8-13.19 0-5.95-3.61-11.19-8.77-12.73l-45-13.5c-18.59-5.58-31.58-23.42-31.58-43.39 0-24.52 19.05-44.44 42.67-45.07V232c0-4.42 3.58-8 8-8h16c4.42 0 8 3.58 8 8v24.29c11.29.58 22.27 4.51 31.37 11.35 3.9 2.93 4.1 8.77.57 12.14l-11.75 11.21c-2.77 2.64-6.89 2.76-10.13.73-3.87-2.43-8.26-3.72-12.82-3.72h-28.11c-6.5 0-11.8 5.92-11.8 13.19 0 5.95 3.61 11.19 8.77 12.73l45 13.5c18.59 5.58 31.58 23.42 31.58 43.39 0 24.53-19.05 44.44-42.67 45.07z"/></symbol>
+<symbol id="i-card" viewBox="0 0 576 512"><path d="M527.9 32H48.1C21.5 32 0 53.5 0 80v352c0 26.5 21.5 48 48.1 48h479.8c26.6 0 48.1-21.5 48.1-48V80c0-26.5-21.5-48-48.1-48zM54.1 80h467.8c3.3 0 6 2.7 6 6v42H48.1V86c0-3.3 2.7-6 6-6zm467.8 352H54.1c-3.3 0-6-2.7-6-6V256h479.8v170c0 3.3-2.7 6-6 6zM192 332v40c0 6.6-5.4 12-12 12h-72c-6.6 0-12-5.4-12-12v-40c0-6.6 5.4-12 12-12h72c6.6 0 12 5.4 12 12zm192 0v40c0 6.6-5.4 12-12 12H236c-6.6 0-12-5.4-12-12v-40c0-6.6 5.4-12 12-12h136c6.6 0 12 5.4 12 12z"/></symbol>
+<symbol id="i-coins" viewBox="0 0 512 512"><path d="M0 405.3V448c0 35.3 86 64 192 64s192-28.7 192-64v-42.7C342.7 434.4 267.2 448 192 448S41.3 434.4 0 405.3zM320 128c106 0 192-28.7 192-64S426 0 320 0 128 28.7 128 64s86 64 192 64zM0 300.4V352c0 35.3 86 64 192 64s192-28.7 192-64v-51.6c-41.3 34-116.9 51.6-192 51.6S41.3 334.4 0 300.4zm416 11c57.3-11.1 96-31.7 96-55.4v-42.7c-23.2 16.4-57.3 27.6-96 34.5v63.6zM192 160C86 160 0 195.8 0 240s86 80 192 80 192-35.8 192-80-86-80-192-80zm219.3 56.3c60-10.8 100.7-32 100.7-56.3v-42.7c-35.5 25.1-96.5 38.6-160.7 41.8 29.5 14.3 51.2 33.5 60 57.2z"/></symbol>
+<symbol id="i-money" viewBox="0 0 640 512"><path d="M621.16 54.46C582.37 38.19 543.55 32 504.75 32c-123.17-.01-246.33 62.34-369.5 62.34-30.89 0-61.76-3.92-92.65-13.72-3.47-1.1-6.95-1.62-10.35-1.62C15.04 79 0 92.32 0 110.81v317.26c0 12.63 7.23 24.6 18.84 29.46C57.63 473.81 96.45 480 135.25 480c123.17 0 246.34-62.35 369.51-62.35 30.89 0 61.76 3.92 92.65 13.72 3.47 1.1 6.95 1.62 10.35 1.62 17.21 0 32.25-13.32 32.25-31.81V83.93c-.01-12.64-7.24-24.6-18.85-29.47zM48 132.22c20.12 5.04 41.12 7.57 62.72 8.93C104.84 170.54 79 192.69 48 192.69v-60.47zm0 285v-47.78c34.37 0 62.18 27.27 63.71 61.4-22.53-1.81-43.59-6.31-63.71-13.62zM320 352c-44.19 0-80-42.99-80-96 0-53.02 35.82-96 80-96s80 42.98 80 96c0 53.03-35.83 96-80 96zm272 27.78c-17.52-4.39-35.71-6.85-54.32-8.44 5.87-26.08 27.5-45.88 54.32-49.28v57.72zm0-236.11c-30.89-3.91-54.86-29.7-55.81-61.55 19.54 2.17 38.09 6.23 55.81 12.66v48.89z"/></symbol>
+<symbol id="i-file" viewBox="0 0 384 512"><path d="M288 248v28c0 6.6-5.4 12-12 12H108c-6.6 0-12-5.4-12-12v-28c0-6.6 5.4-12 12-12h168c6.6 0 12 5.4 12 12zm-12 72H108c-6.6 0-12 5.4-12 12v28c0 6.6 5.4 12 12 12h168c6.6 0 12-5.4 12-12v-28c0-6.6-5.4-12-12-12zm108-188.1V464c0 26.5-21.5 48-48 48H48c-26.5 0-48-21.5-48-48V48C0 21.5 21.5 0 48 0h204.1C264.8 0 277 5.1 286 14.1L369.9 98c9 8.9 14.1 21.2 14.1 33.9zm-128-80V128h76.1L256 51.9zM336 464V176H232c-13.3 0-24-10.7-24-24V48H48v416h288z"/></symbol>
+<symbol id="i-map" viewBox="0 0 576 512"><path d="M288 0c-69.59 0-126 56.41-126 126 0 56.26 82.35 158.8 113.9 196.02 6.39 7.54 17.82 7.54 24.2 0C331.65 284.8 414 182.26 414 126 414 56.41 357.59 0 288 0zm0 168c-23.2 0-42-18.8-42-42s18.8-42 42-42 42 18.8 42 42-18.8 42-42 42zM20.12 215.95A32.006 32.006 0 0 0 0 245.66v250.32c0 11.32 11.43 19.06 21.94 14.86L160 448V214.92c-8.84-15.98-16.07-31.54-21.25-46.42L20.12 215.95zM288 359.67c-14.07 0-27.38-6.18-36.51-16.96-19.66-23.2-40.57-49.62-59.49-76.72v182l192 64V266c-18.92 27.09-39.82 53.52-59.49 76.72-9.13 10.77-22.44 16.95-36.51 16.95zm266.06-198.51L416 224v288l139.88-55.95A31.996 31.996 0 0 0 576 426.34V176.02c0-11.32-11.43-19.06-21.94-14.86z"/></symbol>
+<symbol id="i-headset" viewBox="0 0 512 512"><path d="M192 208c0-17.67-14.33-32-32-32h-16c-35.35 0-64 28.65-64 64v48c0 35.35 28.65 64 64 64h16c17.67 0 32-14.33 32-32V208zm176 144c35.35 0 64-28.65 64-64v-48c0-35.35-28.65-64-64-64h-16c-17.67 0-32 14.33-32 32v112c0 17.67 14.33 32 32 32h16zM256 0C113.18 0 4.58 118.83 0 256v16c0 8.84 7.16 16 16 16h16c8.84 0 16-7.16 16-16v-16c0-114.69 93.31-208 208-208s208 93.31 208 208h-.12c.08 2.43.12 165.72.12 165.72 0 23.35-18.93 42.28-42.28 42.28H320c0-26.51-21.49-48-48-48h-32c-26.51 0-48 21.49-48 48s21.49 48 48 48h181.72c49.86 0 90.28-40.42 90.28-90.28V256C507.42 118.83 398.82 0 256 0z"/></symbol>
+<symbol id="i-robot" viewBox="0 0 640 512"><path d="M32,224H64V416H32A31.96166,31.96166,0,0,1,0,384V256A31.96166,31.96166,0,0,1,32,224Zm512-48V448a64.06328,64.06328,0,0,1-64,64H160a64.06328,64.06328,0,0,1-64-64V176a79.974,79.974,0,0,1,80-80H288V32a32,32,0,0,1,64,0V96H464A79.974,79.974,0,0,1,544,176ZM264,256a40,40,0,1,0-40,40A39.997,39.997,0,0,0,264,256Zm-8,128H192v32h64Zm96,0H288v32h64ZM456,256a40,40,0,1,0-40,40A39.997,39.997,0,0,0,456,256Zm-8,128H384v32h64ZM640,256V384a31.96166,31.96166,0,0,1-32,32H576V224h32A31.96166,31.96166,0,0,1,640,256Z"/></symbol>
+<symbol id="i-gift" viewBox="0 0 512 512"><path d="M32 448c0 17.7 14.3 32 32 32h160V320H32v128zm256 32h160c17.7 0 32-14.3 32-32V320H288v160zm192-320h-42.1c6.2-12.1 10.1-25.5 10.1-40 0-48.5-39.5-88-88-88-41.6 0-68.5 21.3-103 68.3-34.5-47-61.4-68.3-103-68.3-48.5 0-88 39.5-88 88 0 14.5 3.8 27.9 10.1 40H32c-17.7 0-32 14.3-32 32v80c0 8.8 7.2 16 16 16h480c8.8 0 16-7.2 16-16v-80c0-17.7-14.3-32-32-32zm-326.1 0c-22.1 0-40-17.9-40-40s17.9-40 40-40c19.9 0 34.6 3.3 86.1 80h-86.1zm206.1 0h-86.1c51.4-76.5 65.7-80 86.1-80 22.1 0 40 17.9 40 40s-17.9 40-40 40z"/></symbol>
+<symbol id="i-right" viewBox="0 0 320 512"><path d="M285.476 272.971L91.132 467.314c-9.373 9.373-24.569 9.373-33.941 0l-22.667-22.667c-9.357-9.357-9.375-24.522-.04-33.901L188.505 256 34.484 101.255c-9.335-9.379-9.317-24.544.04-33.901l22.667-22.667c9.373-9.373 24.569-9.373 33.941 0L285.475 239.03c9.373 9.372 9.373 24.568.001 33.941z"/></symbol>
+<symbol id="i-left" viewBox="0 0 320 512"><path d="M34.52 239.03L228.87 44.69c9.37-9.37 24.57-9.37 33.94 0l22.67 22.67c9.36 9.36 9.37 24.52.04 33.9L131.49 256l154.02 154.75c9.34 9.38 9.32 24.54-.04 33.9l-22.67 22.67c-9.37 9.37-24.57 9.37-33.94 0L34.52 272.97c-9.37-9.37-9.37-24.57 0-33.94z"/></symbol>
+<symbol id="i-finger" viewBox="0 0 512 512"><path d="M256.12 245.96c-13.25 0-24 10.74-24 24 1.14 72.25-8.14 141.9-27.7 211.55-2.73 9.72 2.15 30.49 23.12 30.49 10.48 0 20.11-6.92 23.09-17.52 13.53-47.91 31.04-125.41 29.48-224.52.01-13.25-10.73-24-23.99-24zm-.86-81.73C194 164.16 151.25 211.3 152.1 265.32c.75 47.94-3.75 95.91-13.37 142.55-2.69 12.98 5.67 25.69 18.64 28.36 13.05 2.67 25.67-5.66 28.36-18.64 10.34-50.09 15.17-101.58 14.37-153.02-.41-25.95 19.92-52.49 54.45-52.34 31.31.47 57.15 25.34 57.62 55.47.77 48.05-2.81 96.33-10.61 143.55-2.17 13.06 6.69 25.42 19.76 27.58 19.97 3.33 26.81-15.1 27.58-19.77 8.28-50.03 12.06-101.21 11.27-152.11-.88-55.8-47.94-101.88-104.91-102.72zm-110.69-19.78c-10.3-8.34-25.37-6.8-33.76 3.48-25.62 31.5-39.39 71.28-38.75 112 .59 37.58-2.47 75.27-9.11 112.05-2.34 13.05 6.31 25.53 19.36 27.89 20.11 3.5 27.07-14.81 27.89-19.36 7.19-39.84 10.5-80.66 9.86-121.33-.47-29.88 9.2-57.88 28-80.97 8.35-10.28 6.79-25.39-3.49-33.76zm109.47-62.33c-15.41-.41-30.87 1.44-45.78 4.97-12.89 3.06-20.87 15.98-17.83 28.89 3.06 12.89 16 20.83 28.89 17.83 11.05-2.61 22.47-3.77 34-3.69 75.43 1.13 137.73 61.5 138.88 134.58.59 37.88-1.28 76.11-5.58 113.63-1.5 13.17 7.95 25.08 21.11 26.58 16.72 1.95 25.51-11.88 26.58-21.11a929.06 929.06 0 0 0 5.89-119.85c-1.56-98.75-85.07-180.33-186.16-181.83zm252.07 121.45c-2.86-12.92-15.51-21.2-28.61-18.27-12.94 2.86-21.12 15.66-18.26 28.61 4.71 21.41 4.91 37.41 4.7 61.6-.11 13.27 10.55 24.09 23.8 24.2h.2c13.17 0 23.89-10.61 24-23.8.18-22.18.4-44.11-5.83-72.34zm-40.12-90.72C417.29 43.46 337.6 1.29 252.81.02 183.02-.82 118.47 24.91 70.46 72.94 24.09 119.37-.9 181.04.14 246.65l-.12 21.47c-.39 13.25 10.03 24.31 23.28 24.69.23.02.48.02.72.02 12.92 0 23.59-10.3 23.97-23.3l.16-23.64c-.83-52.5 19.16-101.86 56.28-139 38.76-38.8 91.34-59.67 147.68-58.86 69.45 1.03 134.73 35.56 174.62 92.39 7.61 10.86 22.56 13.45 33.42 5.86 10.84-7.62 13.46-22.59 5.84-33.43z"/></symbol>
+<symbol id="i-idcard" viewBox="0 0 576 512"><path d="M528 32H48C21.5 32 0 53.5 0 80v352c0 26.5 21.5 48 48 48h480c26.5 0 48-21.5 48-48V80c0-26.5-21.5-48-48-48zm0 400H303.2c.9-4.5.8 3.6.8-22.4 0-31.8-30.1-57.6-67.2-57.6-10.8 0-18.7 8-44.8 8-26.9 0-33.4-8-44.8-8-37.1 0-67.2 25.8-67.2 57.6 0 26-.2 17.9.8 22.4H48V144h480v288zm-168-80h112c4.4 0 8-3.6 8-8v-16c0-4.4-3.6-8-8-8H360c-4.4 0-8 3.6-8 8v16c0 4.4 3.6 8 8 8zm0-64h112c4.4 0 8-3.6 8-8v-16c0-4.4-3.6-8-8-8H360c-4.4 0-8 3.6-8 8v16c0 4.4 3.6 8 8 8zm0-64h112c4.4 0 8-3.6 8-8v-16c0-4.4-3.6-8-8-8H360c-4.4 0-8 3.6-8 8v16c0 4.4 3.6 8 8 8zm-168 96c35.3 0 64-28.7 64-64s-28.7-64-64-64-64 28.7-64 64 28.7 64 64 64z"/></symbol>
+<symbol id="i-mobile" viewBox="0 0 320 512"><path d="M272 0H48C21.5 0 0 21.5 0 48v416c0 26.5 21.5 48 48 48h224c26.5 0 48-21.5 48-48V48c0-26.5-21.5-48-48-48zM160 480c-17.7 0-32-14.3-32-32s14.3-32 32-32 32 14.3 32 32-14.3 32-32 32zm112-108c0 6.6-5.4 12-12 12H60c-6.6 0-12-5.4-12-12V60c0-6.6 5.4-12 12-12h200c6.6 0 12 5.4 12 12v312z"/></symbol>
+<symbol id="i-shield" viewBox="0 0 640 512"><path d="M622.3 271.1l-115.2-45c-4.1-1.6-12.6-3.7-22.2 0l-115.2 45c-10.7 4.2-17.7 14-17.7 24.9 0 111.6 68.7 188.8 132.9 213.9 9.6 3.7 18 1.6 22.2 0C558.4 489.9 640 420.5 640 296c0-10.9-7-20.7-17.7-24.9zM496 462.4V273.3l95.5 37.3c-5.6 87.1-60.9 135.4-95.5 151.8zM224 256c70.7 0 128-57.3 128-128S294.7 0 224 0 96 57.3 96 128s57.3 128 128 128zm96 40c0-2.5.8-4.8 1.1-7.2-2.5-.1-4.9-.8-7.5-.8h-16.7c-22.2 10.2-46.9 16-72.9 16s-50.6-5.8-72.9-16h-16.7C60.2 288 0 348.2 0 422.4V464c0 26.5 21.5 48 48 48h352c6.8 0 13.3-1.5 19.2-4-54-42.9-99.2-116.7-99.2-212z"/></symbol>
+<symbol id="i-check" viewBox="0 0 512 512"><path d="M504 256c0 136.967-111.033 248-248 248S8 392.967 8 256 119.033 8 256 8s248 111.033 248 248zM227.314 387.314l184-184c6.248-6.248 6.248-16.379 0-22.627l-22.627-22.627c-6.248-6.249-16.379-6.249-22.628 0L216 308.118l-70.059-70.059c-6.248-6.248-16.379-6.248-22.628 0l-22.627 22.627c-6.248 6.248-6.248 16.379 0 22.627l104 104c6.249 6.249 16.379 6.249 22.628.001z"/></symbol>
+<symbol id="i-clock" viewBox="0 0 512 512"><path d="M256 8C119 8 8 119 8 256s111 248 248 248 248-111 248-248S393 8 256 8zm0 448c-110.5 0-200-89.5-200-200S145.5 56 256 56s200 89.5 200 200-89.5 200-200 200zm61.8-104.4l-84.9-61.7c-3.1-2.3-4.9-5.9-4.9-9.7V116c0-6.6 5.4-12 12-12h32c6.6 0 12 5.4 12 12v141.7l66.8 48.6c5.4 3.9 6.5 11.4 2.6 16.8L334.6 349c-3.9 5.3-11.4 6.5-16.8 2.6z"/></symbol>
+<symbol id="i-bullhorn" viewBox="0 0 576 512"><path d="M576 240c0-23.63-12.95-44.04-32-55.12V32.01C544 23.26 537.02 0 512 0c-7.12 0-14.19 2.38-19.98 7.02l-85.03 68.03C364.28 109.19 310.66 128 256 128H64c-35.35 0-64 28.65-64 64v96c0 35.35 28.65 64 64 64h33.7c-1.39 10.48-2.18 21.14-2.18 32 0 39.77 9.26 77.35 25.56 110.94 5.19 10.69 16.52 17.06 28.4 17.06h74.28c26.05 0 41.69-29.84 25.9-50.56-16.4-21.52-26.15-48.36-26.15-77.44 0-11.11 1.62-21.79 4.41-32H256c54.66 0 108.28 18.81 150.98 52.95l85.03 68.03a32.023 32.023 0 0 0 19.98 7.02c24.92 0 32-22.78 32-32V295.13C563.05 284.04 576 263.63 576 240zm-96 141.42l-33.05-26.44C392.95 311.78 325.12 288 256 288v-96c69.12 0 136.95-23.78 190.95-66.98L480 98.58v282.84z"/></symbol>
+<symbol id="i-calc" viewBox="0 0 448 512"><path d="M400 0H48C22.4 0 0 22.4 0 48v416c0 25.6 22.4 48 48 48h352c25.6 0 48-22.4 48-48V48c0-25.6-22.4-48-48-48zM128 435.2c0 6.4-6.4 12.8-12.8 12.8H76.8c-6.4 0-12.8-6.4-12.8-12.8v-38.4c0-6.4 6.4-12.8 12.8-12.8h38.4c6.4 0 12.8 6.4 12.8 12.8v38.4zm0-128c0 6.4-6.4 12.8-12.8 12.8H76.8c-6.4 0-12.8-6.4-12.8-12.8v-38.4c0-6.4 6.4-12.8 12.8-12.8h38.4c6.4 0 12.8 6.4 12.8 12.8v38.4zm128 128c0 6.4-6.4 12.8-12.8 12.8h-38.4c-6.4 0-12.8-6.4-12.8-12.8v-38.4c0-6.4 6.4-12.8 12.8-12.8h38.4c6.4 0 12.8 6.4 12.8 12.8v38.4zm0-128c0 6.4-6.4 12.8-12.8 12.8h-38.4c-6.4 0-12.8-6.4-12.8-12.8v-38.4c0-6.4 6.4-12.8 12.8-12.8h38.4c6.4 0 12.8 6.4 12.8 12.8v38.4zm128 128c0 6.4-6.4 12.8-12.8 12.8h-38.4c-6.4 0-12.8-6.4-12.8-12.8V268.8c0-6.4 6.4-12.8 12.8-12.8h38.4c6.4 0 12.8 6.4 12.8 12.8v166.4zm0-256c0 6.4-6.4 12.8-12.8 12.8H76.8c-6.4 0-12.8-6.4-12.8-12.8V76.8C64 70.4 70.4 64 76.8 64h294.4c6.4 0 12.8 6.4 12.8 12.8v102.4z"/></symbol>
+<symbol id="i-download" viewBox="0 0 512 512"><path d="M216 0h80c13.3 0 24 10.7 24 24v168h87.7c17.8 0 26.7 21.5 14.1 34.1L269.7 378.3c-7.5 7.5-19.8 7.5-27.3 0L90.1 226.1c-12.6-12.6-3.7-34.1 14.1-34.1H192V24c0-13.3 10.7-24 24-24zm296 376v112c0 13.3-10.7 24-24 24H24c-13.3 0-24-10.7-24-24V376c0-13.3 10.7-24 24-24h146.7l49 49c20.1 20.1 52.5 20.1 72.6 0l49-49H488c13.3 0 24 10.7 24 24zm-124 88c0-11-9-20-20-20s-20 9-20 20 9 20 20 20 20-9 20-20zm64 0c0-11-9-20-20-20s-20 9-20 20 9 20 20 20 20-9 20-20z"/></symbol>
+<symbol id="i-qrcode" viewBox="0 0 448 512"><path d="M0 224h192V32H0v192zM64 96h64v64H64V96zm192-64v192h192V32H256zm128 128h-64V96h64v64zM0 480h192V288H0v192zm64-128h64v64H64v-64zm352-64h32v128h-96v-32h-32v96h-64V288h96v32h64v-32zm0 160h32v32h-32v-32zm-64 0h32v32h-32v-32z"/></symbol>
+<symbol id="i-wallet" viewBox="0 0 512 512"><path d="M461.2 128H80c-8.84 0-16-7.16-16-16s7.16-16 16-16h384c8.84 0 16-7.16 16-16 0-26.51-21.49-48-48-48H64C28.65 32 0 60.65 0 96v320c0 35.35 28.65 64 64 64h397.2c28.02 0 50.8-21.53 50.8-48V176c0-26.47-22.78-48-50.8-48zM416 336c-17.67 0-32-14.33-32-32s14.33-32 32-32 32 14.33 32 32-14.33 32-32 32z"/></symbol>
+<symbol id="i-chart" viewBox="0 0 512 512"><path d="M496 384H64V80c0-8.84-7.16-16-16-16H16C7.16 64 0 71.16 0 80v336c0 17.67 14.33 32 32 32h464c8.84 0 16-7.16 16-16v-32c0-8.84-7.16-16-16-16zM464 96H345.94c-21.38 0-32.09 25.85-16.97 40.97l32.4 32.4L288 242.75l-73.37-73.37c-12.5-12.5-32.76-12.5-45.25 0l-68.69 68.69c-6.25 6.25-6.25 16.38 0 22.63l22.62 22.62c6.25 6.25 16.38 6.25 22.63 0L192 237.25l73.37 73.37c12.5 12.5 32.76 12.5 45.25 0l96-96 32.4 32.4c15.12 15.12 40.97 4.41 40.97-16.97V112c.01-8.84-7.15-16-15.99-16z"/></symbol>
+<symbol id="i-car" viewBox="0 0 640 512"><path d="M544 192h-16L419.22 56.02A64.025 64.025 0 0 0 369.24 32H155.33c-26.17 0-49.7 15.93-59.42 40.23L48 194.26C20.44 201.4 0 226.21 0 256v112c0 8.84 7.16 16 16 16h48c0 53.02 42.98 96 96 96s96-42.98 96-96h128c0 53.02 42.98 96 96 96s96-42.98 96-96h48c8.84 0 16-7.16 16-16v-80c0-53.02-42.98-96-96-96zM160 432c-26.47 0-48-21.53-48-48s21.53-48 48-48 48 21.53 48 48-21.53 48-48 48zm72-240H116.93l38.4-96H232v96zm48 0V96h89.24l76.8 96H280zm200 240c-26.47 0-48-21.53-48-48s21.53-48 48-48 48 21.53 48 48-21.53 48-48 48z"/></symbol>
+<symbol id="i-building" viewBox="0 0 448 512"><path d="M436 480h-20V24c0-13.255-10.745-24-24-24H56C42.745 0 32 10.745 32 24v456H12c-6.627 0-12 5.373-12 12v20h448v-20c0-6.627-5.373-12-12-12zM128 76c0-6.627 5.373-12 12-12h40c6.627 0 12 5.373 12 12v40c0 6.627-5.373 12-12 12h-40c-6.627 0-12-5.373-12-12V76zm0 96c0-6.627 5.373-12 12-12h40c6.627 0 12 5.373 12 12v40c0 6.627-5.373 12-12 12h-40c-6.627 0-12-5.373-12-12v-40zm52 148h-40c-6.627 0-12-5.373-12-12v-40c0-6.627 5.373-12 12-12h40c6.627 0 12 5.373 12 12v40c0 6.627-5.373 12-12 12zm76 160h-64v-84c0-6.627 5.373-12 12-12h40c6.627 0 12 5.373 12 12v84zm64-172c0 6.627-5.373 12-12 12h-40c-6.627 0-12-5.373-12-12v-40c0-6.627 5.373-12 12-12h40c6.627 0 12 5.373 12 12v40zm0-96c0 6.627-5.373 12-12 12h-40c-6.627 0-12-5.373-12-12v-40c0-6.627 5.373-12 12-12h40c6.627 0 12 5.373 12 12v40zm0-96c0 6.627-5.373 12-12 12h-40c-6.627 0-12-5.373-12-12V76c0-6.627 5.373-12 12-12h40c6.627 0 12 5.373 12 12v40z"/></symbol>
+<symbol id="i-leaf" viewBox="0 0 576 512"><path d="M546.2 9.7c-5.6-12.5-21.6-13-28.3-1.2C486.9 62.4 431.4 96 368 96h-80C182 96 96 182 96 288c0 7 .8 13.7 1.5 20.5C161.3 262.8 253.4 224 384 224c8.8 0 16 7.2 16 16s-7.2 16-16 16C132.6 256 26 410.1 2.4 468c-6.6 16.3 1.2 34.9 17.5 41.6 16.4 6.8 35-1.1 41.8-17.3 1.5-3.6 20.9-47.9 71.9-90.6 32.4 43.9 94 85.8 174.9 77.2C465.5 467.5 576 326.7 576 154.3c0-50.2-10.8-102.2-29.8-144.6z"/></symbol>
+<symbol id="i-angleR" viewBox="0 0 256 512"><path d="M224.3 273l-136 136c-9.4 9.4-24.6 9.4-33.9 0l-22.6-22.6c-9.4-9.4-9.4-24.6 0-33.9l96.4-96.4-96.4-96.4c-9.4-9.4-9.4-24.6 0-33.9L54.3 103c9.4-9.4 24.6-9.4 33.9 0l136 136c9.5 9.4 9.5 24.6.1 34z"/></symbol>
+<symbol id="i-plus" viewBox="0 0 448 512"><path d="M416 208H272V64c0-17.67-14.33-32-32-32h-32c-17.67 0-32 14.33-32 32v144H32c-17.67 0-32 14.33-32 32v32c0 17.67 14.33 32 32 32h144v144c0 17.67 14.33 32 32 32h32c17.67 0 32-14.33 32-32V304h144c17.67 0 32-14.33 32-32v-32c0-17.67-14.33-32-32-32z"/></symbol>
+<symbol id="i-cog" viewBox="0 0 512 512"><path d="M487.4 315.7l-42.6-24.6c4.3-23.2 4.3-47 0-70.2l42.6-24.6c4.9-2.8 7.1-8.6 5.5-14-11.1-35.6-30-67.8-54.7-94.6-3.8-4.1-10-5.1-14.8-2.3L380.8 110c-17.9-15.4-38.5-27.3-60.8-35.1V25.8c0-5.6-3.9-10.5-9.4-11.7-36.7-8.2-74.3-7.8-109.2 0-5.5 1.2-9.4 6.1-9.4 11.7V75c-22.2 7.9-42.8 19.8-60.8 35.1L88.7 85.5c-4.9-2.8-11-1.9-14.8 2.3-24.7 26.7-43.6 58.9-54.7 94.6-1.7 5.4.6 11.2 5.5 14L67.3 221c-4.3 23.2-4.3 47 0 70.2l-42.6 24.6c-4.9 2.8-7.1 8.6-5.5 14 11.1 35.6 30 67.8 54.7 94.6 3.8 4.1 10 5.1 14.8 2.3l42.6-24.6c17.9 15.4 38.5 27.3 60.8 35.1v49.2c0 5.6 3.9 10.5 9.4 11.7 36.7 8.2 74.3 7.8 109.2 0 5.5-1.2 9.4-6.1 9.4-11.7v-49.2c22.2-7.9 42.8-19.8 60.8-35.1l42.6 24.6c4.9 2.8 11 1.9 14.8-2.3 24.7-26.7 43.6-58.9 54.7-94.6 1.5-5.5-.7-11.3-5.6-14.1zM256 336c-44.1 0-80-35.9-80-80s35.9-80 80-80 80 35.9 80 80-35.9 80-80 80z"/></symbol>
+<symbol id="i-signout" viewBox="0 0 512 512"><path d="M497 273L329 441c-15 15-41 4.5-41-17v-96H152c-13.3 0-24-10.7-24-24v-96c0-13.3 10.7-24 24-24h136V88c0-21.4 25.9-32 41-17l168 168c9.3 9.4 9.3 24.6 0 34zM192 436v-40c0-6.6-5.4-12-12-12H96c-17.7 0-32-14.3-32-32V160c0-17.7 14.3-32 32-32h84c6.6 0 12-5.4 12-12V76c0-6.6-5.4-12-12-12H96c-53 0-96 43-96 96v192c0 53 43 96 96 96h84c6.6 0 12-5.4 12-12z"/></symbol>
+<symbol id="i-lock" viewBox="0 0 448 512"><path d="M400 224h-24v-72C376 68.2 307.8 0 224 0S72 68.2 72 152v72H48c-26.5 0-48 21.5-48 48v192c0 26.5 21.5 48 48 48h352c26.5 0 48-21.5 48-48V272c0-26.5-21.5-48-48-48zm-104 0H152v-72c0-39.7 32.3-72 72-72s72 32.3 72 72v72z"/></symbol>
+<symbol id="i-send" viewBox="0 0 512 512"><path d="M476 3.2L12.5 270.6c-18.1 10.4-15.8 35.6 2.2 43.2L121 358.4l287.3-253.2c5.5-4.9 13.3 2.6 8.6 8.3L176 407v80.5c0 23.6 28.5 32.9 42.5 15.8L282 426l124.6 52.2c14.2 6 30.4-2.9 33-18.2l72-432C515 7.8 493.3-6.8 476 3.2z"/></symbol>
+<symbol id="i-excl" viewBox="0 0 512 512"><path d="M504 256c0 136.997-111.043 248-248 248S8 392.997 8 256C8 119.083 119.043 8 256 8s248 111.083 248 248zm-248 50c-25.405 0-46 20.595-46 46s20.595 46 46 46 46-20.595 46-46-20.595-46-46-46zm-43.673-165.346l7.418 136c.347 6.364 5.609 11.346 11.982 11.346h48.546c6.373 0 11.635-4.982 11.982-11.346l7.418-136c.375-6.874-5.098-12.654-11.982-12.654h-63.383c-6.884 0-12.356 5.78-11.981 12.654z"/></symbol>
+<symbol id="i-info" viewBox="0 0 512 512"><path d="M256 8C119.043 8 8 119.083 8 256c0 136.997 111.043 248 248 248s248-111.003 248-248C504 119.083 392.957 8 256 8zm0 110c23.196 0 42 18.804 42 42s-18.804 42-42 42-42-18.804-42-42 18.804-42 42-42zm56 254c0 6.627-5.373 12-12 12h-88c-6.627 0-12-5.373-12-12v-24c0-6.627 5.373-12 12-12h12v-64h-12c-6.627 0-12-5.373-12-12v-24c0-6.627 5.373-12 12-12h64c6.627 0 12 5.373 12 12v100h12c6.627 0 12 5.373 12 12v24z"/></symbol>
+<symbol id="i-scale" viewBox="0 0 640 512"><path d="M256 336h-.02c0-16.18 1.34-8.73-85.05-181.51-17.65-35.29-68.19-35.36-85.87 0C-2.06 328.75.02 320.33.02 336H0c0 44.18 57.31 80 128 80s128-35.82 128-80zM128 176l72 144H56l72-144zm511.98 160c0-16.18 1.34-8.73-85.05-181.51-17.65-35.29-68.19-35.36-85.87 0-87.12 174.26-85.04 165.84-85.04 181.51H384c0 44.18 57.31 80 128 80s128-35.82 128-80h-.02zM440 320l72-144 72 144H440zm88 128H352V153.25c23.51-10.29 41.16-31.48 46.39-57.25H528c8.84 0 16-7.16 16-16V48c0-8.84-7.16-16-16-16H383.64C369.04 12.68 346.09 0 320 0s-49.04 12.68-63.64 32H112c-8.84 0-16 7.16-16 16v32c0 8.84 7.16 16 16 16h129.61c5.23 25.76 22.87 46.96 46.39 57.25V448H112c-8.84 0-16 7.16-16 16v32c0 8.84 7.16 16 16 16h416c8.84 0 16-7.16 16-16v-32c0-8.84-7.16-16-16-16z"/></symbol>
+<symbol id="i-handshake" viewBox="0 0 640 512"><path d="M434.7 64h-85.9c-8 0-15.7 3-21.6 8.4l-98.3 90c-.1.1-.2.3-.3.4-16.6 15.6-16.3 40.5-2.1 56 12.7 13.9 39.4 17.6 56.1 2.7.1-.1.3-.1.4-.2l79.9-73.2c6.5-5.9 16.7-5.5 22.6 1 6 6.5 5.5 16.6-1 22.6l-26.1 23.9L504 313.8c2.9 2.4 5.5 5 7.9 7.7V128l-54.6-54.6c-5.9-6-14.1-9.4-22.6-9.4zM544 128.2v223.9c0 17.7 14.3 32 32 32h64V128.2h-96zm48 223.9c-8.8 0-16-7.2-16-16s7.2-16 16-16 16 7.2 16 16-7.2 16-16 16zM0 384h64c17.7 0 32-14.3 32-32V128.2H0V384zm48-63.9c8.8 0 16 7.2 16 16s-7.2 16-16 16-16-7.2-16-16c0-8.9 7.2-16 16-16zm435.9 18.6L334.6 217.5l-30 27.5c-29.7 27.1-75.2 24.5-101.7-4.4-26.9-29.4-24.8-74.9 4.4-101.7L289.1 64h-83.8c-8.5 0-16.6 3.4-22.6 9.4L128 128v223.9h18.3l90.5 81.9c27.4 22.3 67.7 18.1 90-9.3l.2-.2 17.9 15.5c15.9 13 39.4 10.5 52.3-5.4l31.4-38.6 5.4 4.4c13.7 11.1 33.9 9.1 45-4.7l9.5-11.7c11.2-13.8 9.1-33.9-4.6-45.1z"/></symbol>
+<symbol id="i-list" viewBox="0 0 512 512"><path d="M464 32H48C21.49 32 0 53.49 0 80v352c0 26.51 21.49 48 48 48h416c26.51 0 48-21.49 48-48V80c0-26.51-21.49-48-48-48zm-6 400H54a6 6 0 0 1-6-6V86a6 6 0 0 1 6-6h404a6 6 0 0 1 6 6v340a6 6 0 0 1-6 6zm-42-92v24c0 6.627-5.373 12-12 12H204c-6.627 0-12-5.373-12-12v-24c0-6.627 5.373-12 12-12h200c6.627 0 12 5.373 12 12zm0-96v24c0 6.627-5.373 12-12 12H204c-6.627 0-12-5.373-12-12v-24c0-6.627 5.373-12 12-12h200c6.627 0 12 5.373 12 12zm0-96v24c0 6.627-5.373 12-12 12H204c-6.627 0-12-5.373-12-12v-24c0-6.627 5.373-12 12-12h200c6.627 0 12 5.373 12 12zm-252 12c0 19.882-16.118 36-36 36s-36-16.118-36-36 16.118-36 36-36 36 16.118 36 36zm0 96c0 19.882-16.118 36-36 36s-36-16.118-36-36 16.118-36 36-36 36 16.118 36 36zm0 96c0 19.882-16.118 36-36 36s-36-16.118-36-36 16.118-36 36-36 36 16.118 36 36z"/></symbol>
+<symbol id="i-history" viewBox="0 0 512 512"><path d="M504 255.531c.253 136.64-111.18 248.372-247.82 248.468-59.015.042-113.223-20.53-155.822-54.911-11.077-8.94-11.905-25.541-1.839-35.607l11.267-11.267c8.609-8.609 22.353-9.551 31.891-1.984C173.062 425.135 212.781 440 256 440c101.705 0 184-82.311 184-184 0-101.705-82.311-184-184-184-48.814 0-93.149 18.969-126.068 49.932l50.754 50.754c10.08 10.08 2.941 27.314-11.313 27.314H24c-8.837 0-16-7.163-16-16V38.627c0-14.254 17.234-21.393 27.314-11.314l49.372 49.372C129.209 34.136 189.552 8 256 8c136.81 0 247.747 110.78 248 247.531zm-180.912 78.784l9.823-12.63c8.138-10.463 6.253-25.542-4.21-33.679L288 256.349V152c0-13.255-10.745-24-24-24h-16c-13.255 0-24 10.745-24 24v135.651l65.409 50.874c10.463 8.137 25.541 6.253 33.679-4.21z"/></symbol>
+<symbol id="i-pin" viewBox="0 0 384 512"><path d="M172.268 501.67C26.97 291.031 0 269.413 0 192 0 85.961 85.961 0 192 0s192 85.961 192 192c0 77.413-26.97 99.031-172.268 309.67-9.535 13.774-29.93 13.773-39.464 0zM192 272c44.183 0 80-35.817 80-80s-35.817-80-80-80-80 35.817-80 80 35.817 80 80 80z"/></symbol>
+<symbol id="i-shieldc" viewBox="0 0 512 512"><path d="M466.5 83.7l-192-80a48.15 48.15 0 0 0-36.9 0l-192 80C27.7 91.1 16 108.6 16 128c0 198.5 114.5 335.7 221.5 380.3 11.8 4.9 25.1 4.9 36.9 0C360.1 472.6 496 349.3 496 128c0-19.4-11.7-36.9-29.5-44.3zM256.1 446.3l-.1-381 175.9 73.3c-3.3 151.4-82.1 261.1-175.8 307.7z"/></symbol>
+</svg>
+
+<div id="wrap">
+  <aside id="caption">
+    <div class="logo"><span class="mk"><svg><use href="#i-shield"></use></svg></span><b>個人專屬稅務帳戶</b></div>
+    <h1>一個帳戶，<br>整合國稅・地方稅・雲端發票</h1>
+    <p>比照健康存摺、導入 AI，為每位國人打造即時、遠距的線上納稅服務單一窗口。查詢、申辦、繳納、文書送達，一站完成。</p>
+    <div class="tags">
+      <span class="tag">單一登入窗口</span><span class="tag">24H 線上申辦</span>
+      <span class="tag">屆期繳納提醒</span><span class="tag">AI 智慧客服</span>
+      <span class="tag">全程無紙化</span><span class="tag">精準宣導推播</span>
+    </div>
+    <div class="hint"><span class="dot"></span>這是互動模擬介面，點選畫面即可操作示範</div>
+  </aside>
+
+  <div id="device">
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="screen-shell" id="shell">
+        <div class="statusbar" id="statusbar">
+          <span id="clock">09:41</span>
+          <span class="r"><span class="sig"><b></b><b></b><b></b><b></b></span>
+            <span style="font-size:11px;font-weight:800">5G</span>
+            <span class="bat"><i></i></span></span>
+        </div>
+        <div class="screen" id="screen"></div>
+        <div class="tabbar" id="tabbar"></div>
+        <div class="homebar"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const ic = (n)=>`<svg class="ic"><use href="#i-${n}"></use></svg>`;
+
+/* ---------------- sample data ---------------- */
+const DUE = [
+  {id:"house", icon:"building", name:"房屋稅 114年", amt:8400, due:"2026/05/31", left:5, agency:"臺北市稅捐稽徵處", period:"114年期"},
+  {id:"car",   icon:"car",      name:"使用牌照稅 114年", amt:11230, due:"2026/06/10", left:15, agency:"臺北市稅捐稽徵處", period:"114年期"},
+];
+const RECORDS = [
+  {cat:"national", icon:"fileinv", name:"綜合所得稅 113年度", amt:42800, date:"2026/05/10", status:"paid"},
+  {cat:"local",    icon:"building",name:"房屋稅 113年", amt:8100, date:"2025/06/15", status:"paid"},
+  {cat:"local",    icon:"map",     name:"地價稅 113年", amt:6900, date:"2025/11/20", status:"paid"},
+  {cat:"local",    icon:"car",     name:"使用牌照稅 114年", amt:11230, date:"—", status:"unpaid"},
+  {cat:"local",    icon:"building",name:"房屋稅 114年", amt:8400, date:"—", status:"unpaid"},
+  {cat:"national", icon:"handshake",name:"贈與稅 112年", amt:0, date:"2023/09/02", status:"done"},
+];
+const money = (n)=> n.toLocaleString("en-US");
+
+/* ---------------- state / router ---------------- */
+const state = { logged:false, tab:"home", stack:[], chat:[], payItem:DUE[0], payMethod:0 };
+const screenEl = document.getElementById("screen");
+const shell = document.getElementById("shell");
+const statusbar = document.getElementById("statusbar");
+const tabbarEl = document.getElementById("tabbar");
+
+function go(id, params){ state.stack.push({id, params:params||{}}); render(); }
+function back(){ state.stack.pop(); render(); }
+function setTab(t){ state.tab=t; state.stack=[]; render(); }
+
+const TAB_META=[
+  {id:"home",label:"首頁",icon:"home"},
+  {id:"national",label:"國稅",icon:"national"},
+  {id:"local",label:"地方稅",icon:"local"},
+  {id:"einvoice",label:"雲端發票",icon:"receipt"},
+  {id:"profile",label:"我的",icon:"user"},
+];
+
+/* ---------------- login ---------------- */
+function loginView(){
+  return `<div class="login view">
+    <div class="brand">
+      <span class="mk"><svg style="width:40px;height:40px;fill:var(--brand)"><use href="#i-shield"></use></svg></span>
+      <h2>個人專屬稅務帳戶</h2>
+      <p>財政部 ｜ 整合國稅・地方稅・雲端發票<br>即時、遠距線上納稅服務單一窗口</p>
+      <div class="slogan">算得明白 ・ 繳得便捷 ・ 納得有保障</div>
+    </div>
+    <div class="auth">
+      <div class="lbl">請選擇登入方式</div>
+      ${[["idcard","行動自然人憑證","最高安全等級，可申辦所有服務"],
+         ["finger","生物辨識登入","指紋 / 臉部辨識，快速登入"],
+         ["mobile","手機門號認證","以電信門號快速驗證身分"],
+         ["shieldc","健保卡認證","以健保卡號與註冊密碼登入"]]
+        .map(a=>`<button class="authbtn" data-login="1">
+          <span class="ci">${ic(a[0])}</span>
+          <span class="m"><span class="t">${a[1]}</span><span class="s">${a[2]}</span></span>
+          <span class="go">${ic("angleR")}</span></button>`).join("")}
+      <div class="note">本畫面為功能模擬，點選任一方式即可進入 App</div>
+    </div>
+  </div>`;
+}
+
+/* ---------------- HOME ---------------- */
+function homeView(){
+  const dueTotal = DUE.reduce((s,d)=>s+d.amt,0);
+  return `<div class="view">
+    <div class="hero">
+      <div class="top">
+        <span class="av">${ic("user")}</span>
+        <span class="hi"><span class="s">午安，歡迎回來</span><span class="n">王小明</span></span>
+        <span class="bell" data-nav="notifications"><span class="bg">3</span>${ic("bell")}</span>
+      </div>
+      <div class="hstat">
+        <div class="st warn"><div class="l">待繳筆數</div><div class="v">${DUE.length} <small>筆</small></div></div>
+        <div class="st warn"><div class="l">待繳金額</div><div class="v"><small>NT$</small>${money(dueTotal)}</div></div>
+        <div class="st"><div class="l">今年已繳</div><div class="v"><small>NT$</small>57,800</div></div>
+      </div>
+    </div>
+
+    <div class="body">
+      <div class="due">
+        <div class="h">${ic("bell")} 繳納提醒 <span class="n">${DUE.length} 筆即將到期</span></div>
+        ${DUE.map(d=>`<div class="dueitem">
+          <span class="ic">${ic(d.icon)}</span>
+          <span class="m"><div class="nm">${d.name}</div><div class="dl">繳納期限 ${d.due} · 剩 <b>${d.left} 天</b></div></span>
+          <span class="amt"><div class="a">NT$${money(d.amt)}</div>
+            <button class="btn-pay" data-pay="${d.id}">立即繳納</button></span>
+        </div>`).join("")}
+      </div>
+
+      <div class="sect">
+        <div class="st">三大服務</div>
+        <div class="tiles">
+          <div class="tile c1" data-tab="national"><div class="ci">${ic("national")}</div><div class="tn">國稅</div><div class="td">綜所・遺贈稅</div></div>
+          <div class="tile c2" data-tab="local"><div class="ci">${ic("local")}</div><div class="tn">地方稅</div><div class="td">房屋・地價稅</div></div>
+          <div class="tile c3" data-tab="einvoice"><div class="ci">${ic("receipt")}</div><div class="tn">雲端發票</div><div class="td">載具・領獎</div></div>
+        </div>
+      </div>
+
+      <div class="sect">
+        <div class="st">常用功能</div>
+        <div class="fns">
+          <div class="fn" data-nav="records"><div class="ci">${ic("history")}</div><div class="fl">繳納紀錄</div></div>
+          <div class="fn g" data-nav="calc"><div class="ci">${ic("calc")}</div><div class="fl">稅額試算</div></div>
+          <div class="fn t" data-nav="docs"><div class="ci">${ic("file")}</div><div class="fl">文書存摺</div></div>
+          <div class="fn" data-nav="map"><div class="ci">${ic("map")}</div><div class="fl">服務據點</div></div>
+        </div>
+      </div>
+
+      <div class="sect">
+        <div class="st">為您推薦 <span style="font-size:11px;color:var(--muted);font-weight:600">· AI 精準推播</span></div>
+        <div class="promo" data-nav="promo">
+          <span class="ci">${ic("bullhorn")}</span>
+          <span class="m"><div class="tg">使用牌照稅減免</div>
+            <div class="tx">偵測到您名下小客車，且綜所稅列報身心障礙特別扣除額，可能符合免稅資格，點此了解申請。</div></span>
+          <span class="go">${ic("angleR")}</span>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ---------------- NATIONAL ---------------- */
+function nationalView(){
+  return `<div class="view">
+    <div class="subhead">
+      <div style="display:flex;align-items:center">
+        <div><div class="t">國稅服務</div>
+          <div class="d">${ic("pin")} 財政部臺北國稅局 · 大安分局</div></div>
+        <span class="maplink" data-nav="map">服務地圖 ${ic("angleR")}</span>
+      </div>
+    </div>
+    <div class="body">
+      ${fnGrid([
+        ["search","查詢功能","records"],["fileinv","申辦功能",null],["card","線上繳稅","records"],
+        ["file","文書存摺","docs"],["map","服務地圖","map"],["robot","智慧客服","chat"]])}
+
+      <div class="sect">
+        <div class="st">綜合所得稅 113年度</div>
+        <div class="card pad">
+          <div style="display:flex;align-items:center;gap:12px">
+            <span class="status paid">申報完成・已繳納</span>
+            <span style="margin-left:auto;font-size:12px;color:var(--muted)">核定日 2026/05/10</span>
+          </div>
+          <div style="display:flex;gap:10px;margin-top:14px">
+            <div style="flex:1;background:var(--soft);border-radius:12px;padding:12px">
+              <div style="font-size:11px;color:var(--muted)">應納稅額</div>
+              <div style="font-size:17px;font-weight:900;margin-top:3px">NT$42,800</div></div>
+            <div style="flex:1;background:#e6f5ee;border-radius:12px;padding:12px">
+              <div style="font-size:11px;color:var(--green)">本年度退稅</div>
+              <div style="font-size:17px;font-weight:900;margin-top:3px;color:var(--green)">NT$3,150</div></div>
+          </div>
+          <button class="btn btn-ghost" style="margin-top:14px;padding:12px" data-nav="docs">檢視核定通知書</button>
+        </div>
+      </div>
+
+      <div class="sect">
+        <div class="st">歷年國稅紀錄 <span class="more" data-nav="records">全部</span></div>
+        ${listOf(RECORDS.filter(r=>r.cat==="national"))}
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ---------------- LOCAL ---------------- */
+function localView(){
+  return `<div class="view">
+    <div class="subhead">
+      <div style="display:flex;align-items:center">
+        <div><div class="t">地方稅服務</div>
+          <div class="d">${ic("pin")} 臺北市稅捐稽徵處</div></div>
+        <span class="maplink" data-nav="map">服務地圖 ${ic("angleR")}</span>
+      </div>
+    </div>
+    <div class="body">
+      ${fnGrid([
+        ["search","查詢功能","records"],["fileinv","申辦功能",null],["card","線上繳稅","records"],
+        ["file","文書存摺","docs"],["map","服務地圖","map"],["robot","智慧客服","chat"]])}
+
+      <div class="sect">
+        <div class="st" style="color:var(--red)">${ic("excl")}&nbsp;待繳地方稅</div>
+        <div class="list">
+          ${DUE.map(d=>`<div class="li" data-pay="${d.id}">
+            <span class="ci" style="background:#fdeeea">${ic(d.icon)}</span>
+            <span class="m"><div class="nm">${d.name}</div><div class="sub">期限 ${d.due} · 剩 ${d.left} 天</div></span>
+            <span class="rt"><div class="a" style="color:var(--red)">NT$${money(d.amt)}</div>
+              <span class="status unpaid" style="margin-top:4px">未繳</span></span>
+          </div>`).join("")}
+        </div>
+      </div>
+
+      <div class="sect">
+        <div class="st">我的地方稅目</div>
+        <div class="fns" style="grid-template-columns:repeat(5,1fr)">
+          ${[["building","房屋稅"],["map","地價稅"],["car","牌照稅"],["scale","土增稅"],["handshake","契稅"]]
+            .map(t=>`<div class="fn"><div class="ci">${ic(t[0])}</div><div class="fl">${t[1]}</div></div>`).join("")}
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ---------------- E-INVOICE ---------------- */
+function einvoiceView(){
+  return `<div class="view">
+    <div class="subhead"><div class="t">雲端發票帳戶</div>
+      <div class="d">${ic("mobile")} 手機條碼已歸戶 · 王小明</div></div>
+    <div class="body">
+      <div class="qrcard">
+        <div class="qi">${qrSVG()}</div>
+        <div class="code">/A2X.9K7</div>
+        <div class="cl">個人手機條碼（共通性載具）</div>
+        <div style="display:flex;gap:10px;margin-top:16px">
+          <div style="flex:1;background:var(--soft);border-radius:12px;padding:12px">
+            <div style="font-size:11px;color:var(--muted)">本期發票</div>
+            <div style="font-size:19px;font-weight:900;margin-top:2px">18 <small style="font-size:12px">張</small></div></div>
+          <div style="flex:1;background:#fbf3e2;border-radius:12px;padding:12px">
+            <div style="font-size:11px;color:var(--gold-d)">上期中獎</div>
+            <div style="font-size:19px;font-weight:900;margin-top:2px;color:var(--gold-d)">NT$200</div></div>
+        </div>
+      </div>
+
+      <div class="sect">
+        <div class="st">發票服務</div>
+        <div class="fns">
+          <div class="fn"><div class="ci">${ic("wallet")}</div><div class="fl">載具歸戶</div></div>
+          <div class="fn t"><div class="ci">${ic("list")}</div><div class="fl">發票存摺</div></div>
+          <div class="fn g"><div class="ci">${ic("gift")}</div><div class="fl">領獎設定</div></div>
+          <div class="fn" data-nav="chat"><div class="ci">${ic("robot")}</div><div class="fl">智慧客服</div></div>
+        </div>
+      </div>
+
+      <div class="sect">
+        <div class="st">中獎通知</div>
+        <div class="card">
+          <div class="li"><span class="ci" style="background:#fbf3e2">${ic("gift")}</span>
+            <span class="m"><div class="nm">114年 1-2月 統一發票</div><div class="sub">中獎 NT$200 · 已匯入領獎帳戶</div></span>
+            <span class="status paid">已領取</span></div>
+        </div>
+        <div class="info-note">${ic("info")}<span>雲端發票帳戶與稅務帳戶整合後，可用同一身分證字號登入，免再切換不同 App。</span></div>
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ---------------- PROFILE ---------------- */
+function profileView(){
+  return `<div class="view">
+    <div class="hero" style="border-radius:0 0 26px 26px">
+      <div class="top">
+        <span class="av" style="width:56px;height:56px">${ic("user")}</span>
+        <span class="hi"><span class="n" style="font-size:20px">王小明</span>
+          <span class="s">身分證 A12****789 · 已完成實名認證</span></span>
+      </div>
+    </div>
+    <div class="body">
+      <div class="grp">認證與安全</div>
+      <div class="list">
+        ${toggleRow("finger","生物辨識登入","啟用指紋 / 臉部辨識快速登入",true)}
+        ${toggleRow("shield","高安全認證","財產所得達一定額度，加強登入認證",true)}
+        <div class="li"><span class="ci">${ic("history")}</span>
+          <span class="m"><div class="nm">登入紀錄</div><div class="sub">最近登入 2026/05/26 09:38</div></span>
+          <span class="chev">${ic("angleR")}</span></div>
+      </div>
+
+      <div class="grp">文書送達設定</div>
+      <div class="list">
+        ${toggleRow("file","以本帳戶為送達處所","稅單、核定通知書、繳納證明線上送達",true)}
+        ${toggleRow("bell","屆期繳納提醒簡訊","繳納期限前自動發送提醒",true)}
+        ${toggleRow("bullhorn","精準宣導推播","接收與您相關的稅務宣導資訊",true)}
+      </div>
+
+      <div class="grp">其他</div>
+      <div class="list">
+        <div class="li" data-nav="chat"><span class="ci">${ic("robot")}</span>
+          <span class="m"><div class="nm">AI 智慧客服</div></span><span class="chev">${ic("angleR")}</span></div>
+        <div class="li"><span class="ci">${ic("cog")}</span>
+          <span class="m"><div class="nm">帳戶設定</div></span><span class="chev">${ic("angleR")}</span></div>
+        <div class="li" data-logout="1"><span class="ci" style="background:#fdeaea">${ic("signout")}</span>
+          <span class="m"><div class="nm" style="color:var(--red)">登出</div></span></div>
+      </div>
+      <div style="text-align:center;font-size:11px;color:var(--muted);margin-top:20px">個人專屬稅務帳戶 · 模擬版 v1.0</div>
+    </div>
+  </div>`;
+}
+
+/* ---------------- pushed screens ---------------- */
+function pushHeader(title){
+  return `<div class="phead"><span class="back" data-back="1">${ic("left")}</span><span class="tt">${title}</span></div>`;
+}
+
+const PUSHED = {
+  notifications:()=>`<div class="view pushed">${pushHeader("通知中心")}<div class="body" style="padding-top:16px">
+    <div class="list">
+      ${[["bell","red","繳納提醒","您的房屋稅 NT$8,400 將於 5 天後到期，請儘速繳納。","今天 09:12"],
+         ["gift","gold","中獎通知","恭喜！您的統一發票中獎 NT$200，獎金已匯入。","昨天 18:40"],
+         ["bullhorn","teal","精準宣導","偵測到您可能符合使用牌照稅免稅資格，點此了解。","昨天 10:05"],
+         ["check","green","繳納成功","綜合所得稅 NT$42,800 已完成繳納。","05/10 14:22"]]
+        .map(n=>`<div class="li" ${n[0]==='bullhorn'?'data-nav="promo"':''}>
+          <span class="ci" style="background:${({red:'#fdeeea',gold:'#fbf3e2',teal:'#e7f1f4',green:'#e6f5ee'})[n[1]]}">
+            <svg style="fill:${({red:'var(--red)',gold:'var(--gold-d)',teal:'var(--teal)',green:'var(--green)'})[n[1]]}"><use href="#i-${n[0]}"></use></svg></span>
+          <span class="m"><div class="nm">${n[2]}</div><div class="sub" style="white-space:normal;line-height:1.45;margin-top:3px">${n[3]}</div>
+            <div style="font-size:10.5px;color:#aab4c2;margin-top:5px">${n[4]}</div></span></div>`).join("")}
+    </div></div></div>`,
+
+  records:()=>`<div class="view pushed">${pushHeader("繳納紀錄查詢")}<div class="body" style="padding-top:16px">
+    <div class="chips" id="recChips">
+      <span class="chip on" data-filter="all">全部</span>
+      <span class="chip" data-filter="national">國稅</span>
+      <span class="chip" data-filter="local">地方稅</span>
+      <span class="chip" data-filter="unpaid">未繳</span>
+    </div>
+    <div id="recList">${listOf(RECORDS)}</div>
+  </div></div>`,
+
+  docs:()=>`<div class="view pushed">${pushHeader("稅務文書存摺")}<div class="body" style="padding-top:16px">
+    <div class="info-note" style="margin-top:0">${ic("info")}<span>所有查詢及申辦文書皆儲存於此，全程無紙化，可隨時檢視或下載。</span></div>
+    <div class="list" style="margin-top:14px">
+      ${[["fileinv","綜合所得稅核定通知書","113年度 · 2026/05/10"],
+         ["file","稅額試算通知書","綜所稅 113年度"],
+         ["card","繳納證明","綜合所得稅 NT$42,800"],
+         ["building","房屋稅開徵繳款書","114年期"],
+         ["car","使用牌照稅繳款書","114年期"]]
+        .map(d=>`<div class="li"><span class="ci">${ic(d[0])}</span>
+          <span class="m"><div class="nm">${d[1]}</div><div class="sub">${d[2]}</div></span>
+          <span class="ci" style="width:34px;height:34px;background:var(--soft)">${ic("download")}</span></div>`).join("")}
+    </div></div></div>`,
+
+  promo:()=>`<div class="view pushed">${pushHeader("稅務宣導")}<div class="body" style="padding-top:16px">
+    <div class="card">
+      <div style="background:linear-gradient(135deg,var(--gold),var(--gold-d));padding:26px 20px;color:#fff">
+        <div style="width:56px;height:56px;border-radius:16px;background:rgba(255,255,255,.2);display:grid;place-items:center">
+          ${ic("car")}</div>
+        <div style="font-size:20px;font-weight:900;margin-top:14px">使用牌照稅 免稅申請</div>
+        <div style="font-size:13px;opacity:.92;margin-top:6px">身心障礙者本人或同一戶內親屬，符合條件之車輛可申請免徵。</div>
+      </div>
+      <div class="pad">
+        <div style="font-size:13.5px;color:var(--ink);line-height:1.7">
+          系統依您的稅務資料分析：您名下持有一輛非營業用小客車，且 113 年度綜合所得稅結算申報列報「身心障礙特別扣除額」，
+          惟尚無使用牌照稅免稅紀錄，可能符合免稅資格。</div>
+        <div class="info-note">${ic("info")}<span>每一身心障礙者以一輛為限，汽缸總排氣量須符合規定。實際以稽徵機關審核為準。</span></div>
+        <button class="btn btn-primary" style="margin-top:16px">立即線上申辦</button>
+        <button class="btn btn-ghost" style="margin-top:10px;padding:13px" data-nav="chat">詢問智慧客服</button>
+      </div>
+    </div></div></div>`,
+
+  calc:()=>`<div class="view pushed">${pushHeader("稅額試算")}<div class="body" style="padding-top:16px">
+    <div class="payhead">
+      <div class="lbl">綜合所得稅 · 114年度試算</div>
+      <div class="amt"><small>NT$</small>39,650</div>
+      <div class="nm">較去年減少 NT$3,150</div>
+    </div>
+    <div class="card pad" style="margin-top:14px">
+      <div class="kv"><span class="k">所得總額</span><span class="v">NT$1,280,000</span></div>
+      <div class="kv"><span class="k">免稅額 + 扣除額</span><span class="v">- NT$620,000</span></div>
+      <div class="kv"><span class="k">綜合所得淨額</span><span class="v">NT$660,000</span></div>
+      <div class="kv"><span class="k">適用稅率</span><span class="v">12%</span></div>
+      <div class="kv"><span class="k" style="font-weight:800;color:var(--ink)">應納稅額</span><span class="v" style="color:var(--gold-d)">NT$39,650</span></div>
+    </div>
+    <div class="info-note">${ic("info")}<span>本試算依現有申報資料自動帶入，僅供參考，正式金額以核定通知為準。</span></div>
+    <button class="btn btn-navy" style="margin-top:16px">確認並進行申報</button>
+  </div></div>`,
+
+  map:()=>`<div class="view pushed">${pushHeader("服務據點")}<div class="body" style="padding-top:16px">
+    <div class="card" style="height:180px;background:linear-gradient(135deg,#dbe6f0,#c4d5e6);position:relative;display:grid;place-items:center">
+      <div style="text-align:center;color:var(--brand)">
+        <div style="width:50px;height:50px;margin:0 auto 8px;color:var(--red)"><svg style="width:50px;height:50px;fill:currentColor"><use href="#i-pin"></use></svg></div>
+        <div style="font-weight:800">臺北市稅捐稽徵處</div>
+        <div style="font-size:12px;color:#5a6b82;margin-top:2px">距離您 1.2 公里</div>
+      </div>
+    </div>
+    <div class="list" style="margin-top:14px">
+      ${[["臺北市稅捐稽徵處","中正區武昌街一段 1 號","營業中 · 08:30–17:00"],
+         ["財政部臺北國稅局","中正區忠孝西路一段 66 號","營業中 · 08:30–17:00"],
+         ["大安分局","大安區仁愛路三段 25 號","營業中 · 08:30–17:00"]]
+        .map(m=>`<div class="li"><span class="ci">${ic("pin")}</span>
+          <span class="m"><div class="nm">${m[0]}</div><div class="sub">${m[1]} · ${m[2]}</div></span>
+          <span class="chev">${ic("angleR")}</span></div>`).join("")}
+    </div></div></div>`,
+
+  pay:(p)=>{ const d=DUE.find(x=>x.id===state.payItem.id)||DUE[0];
+    const methods=[["card","帳戶轉帳（約定帳戶）"],["wallet","信用卡"],["mobile","行動支付"]];
+    return `<div class="view pushed">${pushHeader("線上繳稅")}<div class="body" style="padding-top:16px">
+    <div class="payhead">
+      <div class="lbl">應繳金額</div>
+      <div class="amt"><small>NT$</small>${money(d.amt)}</div>
+      <div class="nm">${d.name}</div>
+    </div>
+    <div class="card" style="margin-top:14px;padding:4px 16px">
+      <div class="kv"><span class="k">稅目</span><span class="v">${d.name}</span></div>
+      <div class="kv"><span class="k">徵收機關</span><span class="v">${d.agency}</span></div>
+      <div class="kv"><span class="k">繳納期限</span><span class="v" style="color:var(--red)">${d.due}</span></div>
+    </div>
+    <div class="grp">選擇繳款方式</div>
+    <div class="list" id="methods">
+      ${methods.map((m,i)=>`<div class="paymethod ${i===state.payMethod?'sel':''}" data-method="${i}">
+        <span class="ci">${ic(m[0])}</span><span class="m">${m[1]}</span><span class="rd"></span></div>`).join("")}
+    </div>
+    <button class="btn btn-primary" style="margin-top:18px" data-payconfirm="1">確認繳納 NT$${money(d.amt)}</button>
+    <div class="info-note">${ic("shield")}<span>本交易採金融級加密與嚴謹身分驗證，繳納後將自動產製電子繳納證明。</span></div>
+  </div></div>`; },
+
+  paydone:()=>{ const d=state.payItem;
+    return `<div class="view pushed"><div class="done">
+      <div class="ok">${ic("check")}</div>
+      <h3>繳納成功</h3>
+      <p>${d.name}<br>已完成線上繳納，電子繳納證明已存入文書存摺。</p>
+      <div class="rc">
+        <div class="kv"><span class="k">繳納金額</span><span class="v" style="font-size:16px">NT$${money(d.amt)}</span></div>
+        <div class="kv"><span class="k">交易時間</span><span class="v">2026/05/26 09:41</span></div>
+        <div class="kv"><span class="k">交易序號</span><span class="v">TX20260526094132</span></div>
+      </div>
+      <button class="btn btn-ghost" style="padding:13px" data-nav="docs">下載繳納證明</button>
+      <button class="btn btn-navy" style="margin-top:10px" data-home="1">返回首頁</button>
+    </div></div>`; },
+
+  chat:()=>`<div class="view pushed chatwrap" style="height:100%">
+    ${pushHeader("AI 智慧客服")}
+    <div class="chatbody" id="chatbody"></div>
+    <div class="quick" id="quick">
+      <span class="q" data-q="我的待繳稅款有哪些？">我的待繳稅款</span>
+      <span class="q" data-q="房屋稅要怎麼繳納？">房屋稅怎麼繳</span>
+      <span class="q" data-q="我可以申請哪些稅務減免？">可申請的減免</span>
+    </div>
+    <div class="chatbar"><span class="inp">輸入訊息…</span><span class="snd" data-q="__demo">${ic("send")}</span></div>
+  </div>`,
+};
+
+/* ---------------- shared builders ---------------- */
+function fnGrid(items){
+  return `<div class="fns" style="grid-template-columns:repeat(3,1fr)">
+    ${items.map((f,i)=>`<div class="fn ${i%3===1?'g':(i%3===2?'t':'')}" ${f[2]?`data-nav="${f[2]}"`:''}>
+      <div class="ci">${ic(f[0])}</div><div class="fl">${f[1]}</div></div>`).join("")}</div>`;
+}
+function listOf(rows){
+  return `<div class="list">${rows.map(r=>`<div class="li" ${r.status==='unpaid'?`data-pay="${(DUE.find(d=>d.name===r.name)||{}).id||''}"`:''}>
+    <span class="ci">${ic(r.icon)}</span>
+    <span class="m"><div class="nm">${r.name}</div><div class="sub">${r.status==='unpaid'?'尚未繳納':'繳納日 '+r.date}</div></span>
+    <span class="rt"><div class="a" style="color:${r.status==='unpaid'?'var(--red)':'var(--ink)'}">${r.amt?('NT$'+money(r.amt)):'免稅'}</div>
+      <span class="status ${r.status}" style="margin-top:4px">${({paid:'已繳',unpaid:'未繳',done:'已完成'})[r.status]}</span></span>
+  </div>`).join("")}</div>`;
+}
+function toggleRow(icon,t,s,on){
+  return `<div class="trow"><span class="ci">${ic(icon)}</span>
+    <span class="m"><div class="t">${t}</div><div class="s">${s}</div></span>
+    <span class="tg ${on?'on':''}" data-toggle="1"></span></div>`;
+}
+function qrSVG(){
+  // deterministic pseudo-QR
+  let cells="";const g=13,size=150,c=size/g;let seed=7;
+  const rnd=()=>{seed=(seed*1103515245+12345)&0x7fffffff;return seed/0x7fffffff;};
+  for(let y=0;y<g;y++)for(let x=0;x<g;x++){ if(rnd()>0.5) cells+=`<rect x="${x*c}" y="${y*c}" width="${c}" height="${c}" fill="#13294B"/>`; }
+  const eye=(ex,ey)=>`<rect x="${ex}" y="${ey}" width="${c*3}" height="${c*3}" fill="none" stroke="#13294B" stroke-width="${c}"/>
+    <rect x="${ex+c}" y="${ey+c}" width="${c}" height="${c}" fill="#13294B"/>`;
+  return `<svg viewBox="0 0 ${size} ${size}">${cells}${eye(0,0)}${eye(size-c*3,0)}${eye(0,size-c*3)}</svg>`;
+}
+
+/* ---------------- chat logic ---------------- */
+function chatPush(who,text){ state.chat.push({who,text}); }
+function renderChat(){
+  const box=document.getElementById("chatbody"); if(!box)return;
+  box.innerHTML = state.chat.map(m=> m.who==="bot"
+    ? `<div class="botrow"><span class="av">${ic("robot")}</span><div class="msg bot">${m.text}</div></div>`
+    : `<div class="msg me">${m.text}</div>`).join("");
+  box.scrollTop = box.scrollHeight;
+}
+const BOT = {
+  "我的待繳稅款有哪些？":"您目前有 2 筆待繳稅款：<br>① 房屋稅 NT$8,400（5 天後到期）<br>② 使用牌照稅 NT$11,230（15 天後到期）<br>需要我幫您立即繳納嗎？",
+  "房屋稅要怎麼繳納？":"您的房屋稅 NT$8,400 可直接於本帳戶線上繳納，支援帳戶轉帳、信用卡與行動支付，繳完會自動產製電子繳納證明喔！",
+  "我可以申請哪些稅務減免？":"依您的資料分析，您可能符合「使用牌照稅身心障礙者免稅」資格，可於宣導專區線上申辦。是否為您開啟申辦頁面？",
+  "__demo":"感謝您的提問！本客服為模擬示範，實際版本將串接國稅與地方稅智慧客服，提供 24 小時即時稅務諮詢。",
+};
+function botReply(q){ return BOT[q] || "感謝您的提問，稅務智能客服將盡快為您服務。"; }
+
+/* ---------------- render ---------------- */
+function render(){
+  if(!state.logged){ shell.classList.add("no-tabs"); statusbar.classList.add("dark"); screenEl.innerHTML=loginView(); screenEl.scrollTop=0; return; }
+  statusbar.classList.toggle("dark", state.stack.length>0 && ["records","docs","notifications","map","calc","chat","paydone","promo","pay"].includes(state.stack[state.stack.length-1].id));
+
+  let html;
+  if(state.stack.length){
+    shell.classList.add("no-tabs");
+    const top=state.stack[state.stack.length-1];
+    html = PUSHED[top.id](top.params);
+  }else{
+    shell.classList.remove("no-tabs");
+    html = ({home:homeView,national:nationalView,local:localView,einvoice:einvoiceView,profile:profileView})[state.tab]();
+  }
+  screenEl.innerHTML = html;
+  screenEl.scrollTop = 0;
+
+  // tab bar active
+  tabbarEl.innerHTML = TAB_META.map(t=>`<div class="tab ${state.tab===t.id?'on':''}" data-tab="${t.id}">
+    <div class="ci">${ic(t.icon)}</div><div class="tl">${t.label}</div></div>`).join("");
+
+  // floating AI on tab roots (not chat/profile)
+  const old=document.getElementById("fab"); if(old) old.remove();
+  if(!state.stack.length && state.tab!=="profile"){
+    const fab=document.createElement("div"); fab.id="fab"; fab.className="fab";
+    fab.innerHTML=`<span class="pin"></span>${ic("robot")}`;
+    fab.onclick=()=>go("chat");
+    shell.appendChild(fab);
+  }
+
+  if(state.stack.length && state.stack[state.stack.length-1].id==="chat"){
+    if(state.chat.length===0){ chatPush("bot","您好，我是稅務智能客服 🤖<br>整合國稅・地方稅・雲端發票諮詢，請問需要什麼協助？"); }
+    renderChat();
+  }
+}
+
+/* ---------------- events ---------------- */
+document.addEventListener("click",(e)=>{
+  const t=e.target.closest("[data-login],[data-logout],[data-tab],[data-nav],[data-back],[data-pay],[data-method],[data-payconfirm],[data-home],[data-toggle],[data-filter],[data-q]");
+  if(!t) return;
+  if(t.dataset.login!==undefined){ state.logged=true; state.tab="home"; state.stack=[]; render(); return; }
+  if(t.dataset.logout!==undefined){ state.logged=false; state.stack=[]; state.chat=[]; render(); return; }
+  if(t.dataset.tab){ setTab(t.dataset.tab); return; }
+  if(t.dataset.nav){ go(t.dataset.nav); return; }
+  if(t.dataset.back!==undefined){ back(); return; }
+  if(t.dataset.home!==undefined){ setTab("home"); return; }
+  if(t.dataset.pay!==undefined){ const d=DUE.find(x=>x.id===t.dataset.pay); if(d){state.payItem=d;state.payMethod=0;} go("pay"); return; }
+  if(t.dataset.method!==undefined){ state.payMethod=+t.dataset.method;
+    document.querySelectorAll("#methods .paymethod").forEach((m,i)=>m.classList.toggle("sel",i===state.payMethod)); return; }
+  if(t.dataset.payconfirm!==undefined){ state.stack.pop(); state.stack.push({id:"paydone",params:{}}); render(); return; }
+  if(t.dataset.toggle!==undefined){ t.classList.toggle("on"); return; }
+  if(t.dataset.filter){
+    document.querySelectorAll("#recChips .chip").forEach(c=>c.classList.toggle("on",c===t));
+    const f=t.dataset.filter;
+    const rows = f==="all"?RECORDS : f==="unpaid"?RECORDS.filter(r=>r.status==="unpaid"):RECORDS.filter(r=>r.cat===f);
+    document.getElementById("recList").innerHTML=listOf(rows); return;
+  }
+  if(t.dataset.q){
+    const q=t.dataset.q;
+    if(q==="__demo"){ chatPush("me","請問稅務帳戶有哪些功能？"); }
+    else chatPush("me", t.textContent);
+    renderChat();
+    const ans = botReply(q);
+    setTimeout(()=>{ chatPush("bot",ans); renderChat(); },550);
+    return;
+  }
+});
+
+/* clock + scale */
+function tick(){ const d=new Date(); document.getElementById("clock").textContent=
+  String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0"); }
+function fit(){ const s=Math.min(1,(window.innerHeight-40)/844); document.getElementById("device").style.transform=`scale(${s})`; }
+window.addEventListener("resize",fit);
+tick(); setInterval(tick,10000); fit();
+render();
+</script>
+</body>
+</html>
